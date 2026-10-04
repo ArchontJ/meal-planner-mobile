@@ -39,3 +39,17 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+## This project: Meal Planner – Android companion
+
+Companion to the desktop app (Tauri + React, repo `../MealPlanner New`). Same Supabase project and publishable key (`.env.local`, see `.env.example`); Row Level Security scopes every query to the signed-in user. Spec: the "Meal Planner – app summary for the Android companion" doc; desktop-side changes: `../MealPlanner New/docs/MOBILE_COMPANION_UPDATE.md`.
+
+**Scope v1:** read-only. Plan (one day at a time, opens on today) → cooking view; recipes (Moje / Inspiracje with bookmarks in `saved_shared_recipes`); shopping lists stored **on the phone only**, built from the plan with the desktop rules. Plan editing comes later in the same Plan screen.
+
+**Shared code:** `npm run sync:shared` copies the desktop's pure logic, `types/database.ts` and `i18n/pl.json`/`en.json` into `src/` at the same paths (list in `scripts/sync-shared.mjs`). Never edit those copies – change the desktop file and sync. Phone-only texts go in `src/i18n/mobile.*.json` under the `mobile` key.
+
+**UI:** React Native Paper (Material 3) with the "Szałwia" palette in `src/theme/palette.ts`; use `useAppTheme()` for colours, never hard-coded hex. Three tabs (Plan, Przepisy, Zakupy); profile and settings open from the avatar in the header. Polish is the default language; language and theme come from the profile, keep-awake and wallpaper colours are phone-only (`src/lib/preferences.ts`). Cooking view: no checkboxes on ingredients, portions stepper, screen stays on.
+
+**Rules from the desktop:** dates are local `YYYY-MM-DD` (`@/lib/dates`, never `toISOString`); macros unrounded until display; Polish decimal comma and plurals via i18next; goal status = icon + word, never colour alone.
+
+Package name `com.archont.mealplanner`. Build and run on a device: `npm run android`.

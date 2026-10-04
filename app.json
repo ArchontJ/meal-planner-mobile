@@ -1,25 +1,36 @@
 {
   "expo": {
-    "name": "mealplanner-mobile",
-    "slug": "mealplanner-mobile",
-    "version": "1.0.0",
+    "name": "Meal Planner",
+    "slug": "mealplanner",
+    "version": "0.1.0",
+    "scheme": "mealplanner",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#F7F9F7",
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "package": "com.archont.mealplanner",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#D3E8DC",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-status-bar",
+      "expo-system-ui",
+      "expo-font",
+      "./plugins/withLongPathCmake"
+    ],
+    "experiments": {
+      "typedRoutes": true
     }
   }
 }

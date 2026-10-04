@@ -1,0 +1,24 @@
+{
+  "mobile": {
+    "tabs": {
+      "plan": "Plan",
+      "recipes": "Przepisy",
+      "shopping": "Zakupy"
+    },
+    "openProfile": "Profil i ustawienia",
+    "comingSoon": "Ten ekran powstaje.",
+    "settings": {
+      "title": "Profil i ustawienia",
+      "app": "Aplikacja",
+      "language": "Język",
+      "theme": "Motyw",
+      "themeSystem": "System",
+      "themeLight": "Jasny",
+      "themeDark": "Ciemny",
+      "dynamicColor": "Kolory z tapety",
+      "dynamicColorHint": "Android 12 i nowsze",
+      "keepAwake": "Ekran nie gaśnie podczas gotowania",
+      "version": "Meal Planner {{version}}"
+    }
+  }
+}
