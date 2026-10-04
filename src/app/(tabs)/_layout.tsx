@@ -34,7 +34,7 @@ export default function TabsLayout() {
         />
       )}
     >
-      <Tabs.Screen name="index" options={{ title: t("mobile.tabs.plan"), tabBarIcon: tabIcon("calendar-today") }} />
+      <Tabs.Screen name="index" options={{ title: t("mobile.tabs.plan"), tabBarIcon: tabIcon("calendar-today"), headerShown: false }} />
       <Tabs.Screen
         name="recipes"
         options={{ title: t("mobile.tabs.recipes"), tabBarIcon: tabIcon("book-open-variant") }}

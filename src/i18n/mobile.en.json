@@ -27,6 +27,9 @@
     },
     "auth": {
       "missingConfig": "Sign-in is not configured (EXPO_PUBLIC_SUPABASE_* or EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID in .env.local)."
+    },
+    "plan": {
+      "yesterday": "Yesterday"
     }
   }
 }

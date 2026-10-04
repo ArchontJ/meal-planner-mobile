@@ -27,6 +27,9 @@
     },
     "auth": {
       "missingConfig": "Brakuje konfiguracji logowania (EXPO_PUBLIC_SUPABASE_* lub EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID w .env.local)."
+    },
+    "plan": {
+      "yesterday": "Wczoraj"
     }
   }
 }

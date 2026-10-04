@@ -1,0 +1,45 @@
+import { useQuery } from "@tanstack/react-query";
+import { toPlanMeal, type MealRow, type PlanMeal } from "@/features/plan/model";
+import { useAuth } from "@/lib/auth";
+import type { ISODate } from "@/lib/dates";
+import { supabase } from "@/lib/supabase";
+
+// Same select as the desktop's plan api, so toPlanMeal (shared) builds the same meals.
+const MEAL_SELECT = `
+  id, date, slot_id,
+  meal_items(
+    id, position, grams, portions,
+    product:products(id, name, producer, kcal, protein, fat, carbs, archived_at),
+    recipe:recipes(
+      id, name, archived_at, instructions, serve_with,
+      recipe_ingredients(grams, position, product:products(name, kcal, protein, fat, carbs))
+    )
+  )`;
+
+/** All meals in [from, to] (inclusive), e.g. one week. */
+export function useMealsRange(from: ISODate, to: ISODate) {
+  const userId = useAuth((s) => s.session?.user.id);
+  return useQuery({
+    queryKey: ["meals", userId, from, to],
+    enabled: Boolean(userId),
+    queryFn: async (): Promise<PlanMeal[]> => {
+      const { data, error } = await supabase.from("meals").select(MEAL_SELECT).gte("date", from).lte("date", to);
+      if (error) throw error;
+      return (data as unknown as MealRow[]).map(toPlanMeal);
+    },
+  });
+}
+
+/** Meal slots in plan order (hidden ones included). */
+export function useMealSlots() {
+  const userId = useAuth((s) => s.session?.user.id);
+  return useQuery({
+    queryKey: ["meal_slots", userId],
+    enabled: Boolean(userId),
+    queryFn: async () => {
+      const { data, error } = await supabase.from("meal_slots").select("*").order("position");
+      if (error) throw error;
+      return data;
+    },
+  });
+}

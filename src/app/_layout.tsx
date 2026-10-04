@@ -3,6 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useTranslation } from "react-i18next";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
 import { AuthGate } from "@/features/auth/AuthGate";
 import { queryClient } from "@/lib/queryClient";
@@ -13,6 +14,7 @@ export default function RootLayout() {
   const { t } = useTranslation();
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <QueryClientProvider client={queryClient}>
       <PaperProvider theme={theme}>
         <ThemeProvider value={navigation}>
@@ -33,5 +35,6 @@ export default function RootLayout() {
         </ThemeProvider>
       </PaperProvider>
     </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }

@@ -17,6 +17,7 @@ export const SHARED_FILES = [
   "src/lib/goals.ts",
   "src/lib/dates.ts",
   "src/lib/search.ts",
+  "src/lib/labels.ts",
   "src/features/shopping/aggregate.ts",
   "src/features/plan/model.ts",
   "src/features/recipes/filter.ts",
