@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toPlanMeal, type MealRow, type PlanMeal } from "@/features/plan/model";
 import { useAuth } from "@/lib/auth";
 import type { ISODate } from "@/lib/dates";
@@ -40,6 +40,27 @@ export function useMealSlots() {
       const { data, error } = await supabase.from("meal_slots").select("*").order("position");
       if (error) throw error;
       return data;
+    },
+  });
+}
+
+/** One planned meal (cooking view); starts from the plan already loaded, then refreshes. */
+export function useMeal(id: string) {
+  const userId = useAuth((s) => s.session?.user.id);
+  const queryClient = useQueryClient();
+  return useQuery({
+    queryKey: ["meal", userId, id],
+    enabled: Boolean(userId),
+    initialData: () =>
+      queryClient
+        .getQueriesData<PlanMeal[]>({ queryKey: ["meals", userId] })
+        .flatMap(([, meals]) => meals ?? [])
+        .find((m) => m.id === id),
+    initialDataUpdatedAt: 0,
+    queryFn: async (): Promise<PlanMeal> => {
+      const { data, error } = await supabase.from("meals").select(MEAL_SELECT).eq("id", id).single();
+      if (error) throw error;
+      return toPlanMeal(data as unknown as MealRow);
     },
   });
 }

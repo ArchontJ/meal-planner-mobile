@@ -30,6 +30,11 @@
     },
     "plan": {
       "yesterday": "Yesterday"
+    },
+    "cooking": {
+      "ingredients": "Ingredients",
+      "fewerPortions": "Fewer portions",
+      "morePortions": "More portions"
     }
   }
 }
