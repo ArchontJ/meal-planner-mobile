@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { Appbar, Avatar, TouchableRipple } from "react-native-paper";
+import { Appbar, TouchableRipple } from "react-native-paper";
+import { UserAvatar } from "@/features/profile/UserAvatar";
 import { useAppTheme } from "@/theme/theme";
 
 /** Tab screen header: title on the left, the user's avatar (profile and settings) on the right. */
@@ -18,12 +19,7 @@ export function AppHeader({ title }: { title: string }) {
         borderless
         style={{ borderRadius: 20, marginRight: 12 }}
       >
-        <Avatar.Icon
-          size={36}
-          icon="account"
-          color={theme.colors.onPrimaryContainer}
-          style={{ backgroundColor: theme.colors.primaryContainer }}
-        />
+        <UserAvatar />
       </TouchableRipple>
     </Appbar.Header>
   );

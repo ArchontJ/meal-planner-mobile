@@ -42,7 +42,7 @@ Docs: https://docs.expo.dev/eas/index.md
 
 ## This project: Meal Planner – Android companion
 
-Companion to the desktop app (Tauri + React, repo `../MealPlanner New`). Same Supabase project and publishable key (`.env.local`, see `.env.example`); Row Level Security scopes every query to the signed-in user. Spec: the "Meal Planner – app summary for the Android companion" doc; desktop-side changes: `../MealPlanner New/docs/MOBILE_COMPANION_UPDATE.md`.
+Companion to the desktop app (Tauri + React, repo `../MealPlanner New`). Documentation and milestones: Claude Doc "Meal Planner Mobile – documentation and milestones" (https://claude.ai/code/artifact/0906423a-8061-4e58-8961-f520bbf22f18) – update it when a milestone or decision changes. Same Supabase project and publishable key (`.env.local`, see `.env.example`); Row Level Security scopes every query to the signed-in user. Spec: the "Meal Planner – app summary for the Android companion" doc; desktop-side changes: `../MealPlanner New/docs/MOBILE_COMPANION_UPDATE.md`.
 
 **Scope v1:** read-only. Plan (one day at a time, opens on today) → cooking view; recipes (Moje / Inspiracje with bookmarks in `saved_shared_recipes`); shopping lists stored **on the phone only**, built from the plan with the desktop rules. Plan editing comes later in the same Plan screen.
 

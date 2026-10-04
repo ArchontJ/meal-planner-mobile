@@ -18,7 +18,15 @@
       "dynamicColor": "Kolory z tapety",
       "dynamicColorHint": "Android 12 i nowsze",
       "keepAwake": "Ekran nie gaśnie podczas gotowania",
-      "version": "Meal Planner {{version}}"
+      "version": "Meal Planner {{version}}",
+      "yourPlan": "Twój plan",
+      "changeOnDesktop": "zmiana na komputerze",
+      "goals": "Cele dzienne",
+      "goalsValue": "{{kcal}} kcal · B min. {{protein}} g · T {{fatMin}}–{{fatMax}}%",
+      "householdSize": "Liczba osób"
+    },
+    "auth": {
+      "missingConfig": "Brakuje konfiguracji logowania (EXPO_PUBLIC_SUPABASE_* lub EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID w .env.local)."
     }
   }
 }

@@ -18,7 +18,15 @@
       "dynamicColor": "Colours from wallpaper",
       "dynamicColorHint": "Android 12 and newer",
       "keepAwake": "Keep the screen on while cooking",
-      "version": "Meal Planner {{version}}"
+      "version": "Meal Planner {{version}}",
+      "yourPlan": "Your plan",
+      "changeOnDesktop": "change on the desktop",
+      "goals": "Daily goals",
+      "goalsValue": "{{kcal}} kcal · P min. {{protein}} g · F {{fatMin}}–{{fatMax}}%",
+      "householdSize": "Number of people"
+    },
+    "auth": {
+      "missingConfig": "Sign-in is not configured (EXPO_PUBLIC_SUPABASE_* or EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID in .env.local)."
     }
   }
 }
