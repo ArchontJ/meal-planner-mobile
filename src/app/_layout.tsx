@@ -2,7 +2,9 @@ import "@/i18n";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import Constants from "expo-constants";
 import { Stack, ThemeProvider } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { LogBox, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -18,6 +20,9 @@ import { useResolvedTheme, type AppTheme } from "@/theme/theme";
 // dev-client launch link before its container has mounted, which React reports as an error.
 // It cannot happen in a release build (no dev-client link) and changes nothing for the app.
 if (__DEV__) LogBox.ignoreLogs(["Can't perform a React state update on a component that hasn't mounted yet"]);
+
+// Keep the splash screen until the saved session is restored, so the sign-in screen never flashes.
+void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const { theme, navigation } = useResolvedTheme();
@@ -53,6 +58,10 @@ function RootStack({ theme }: { theme: AppTheme }) {
   const status = useAuthBootstrap();
   const signedIn = status === "signedIn";
   useOfflinePrefetch();
+
+  useEffect(() => {
+    if (status !== "loading") void SplashScreen.hideAsync();
+  }, [status]);
 
   return (
     <>

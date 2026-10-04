@@ -16,7 +16,7 @@
       "themeLight": "Light",
       "themeDark": "Dark",
       "dynamicColor": "Colours from wallpaper",
-      "dynamicColorHint": "Android 12 and newer",
+      "dynamicColorHint": "Instead of the app green (Android 12 and newer)",
       "keepAwake": "Keep the screen on while cooking",
       "version": "Meal Planner {{version}}",
       "yourPlan": "Your plan",

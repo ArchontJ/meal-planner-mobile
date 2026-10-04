@@ -16,7 +16,7 @@
       "themeLight": "Jasny",
       "themeDark": "Ciemny",
       "dynamicColor": "Kolory z tapety",
-      "dynamicColorHint": "Android 12 i nowsze",
+      "dynamicColorHint": "Zamiast zieleni aplikacji (Android 12 i nowsze)",
       "keepAwake": "Ekran nie gaśnie podczas gotowania",
       "version": "Meal Planner {{version}}",
       "yourPlan": "Twój plan",

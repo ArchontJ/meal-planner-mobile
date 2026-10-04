@@ -7,7 +7,7 @@ import { useProfile, useUpdateProfile } from "@/features/profile/api";
 import { UserAvatar } from "@/features/profile/UserAvatar";
 import { signOut, useAuth } from "@/lib/auth";
 import { LANGUAGES, THEMES, usePreferences, type Language, type Theme } from "@/lib/preferences";
-import { useAppTheme } from "@/theme/theme";
+import { supportsWallpaperColors, useAppTheme } from "@/theme/theme";
 
 const THEME_LABEL: Record<Theme, string> = {
   system: "mobile.settings.themeSystem",
@@ -62,6 +62,14 @@ export default function SettingsScreen() {
             buttons={THEMES.map((th) => ({ value: th, label: t(THEME_LABEL[th]) }))}
           />
         </View>
+        {supportsWallpaperColors && (
+          <List.Item
+            title={t("mobile.settings.dynamicColor")}
+            description={t("mobile.settings.dynamicColorHint")}
+            left={(props) => <List.Icon {...props} icon="palette-outline" />}
+            right={() => <Switch value={prefs.dynamicColor} onValueChange={prefs.setDynamicColor} />}
+          />
+        )}
         <List.Item
           title={t("mobile.settings.keepAwake")}
           titleNumberOfLines={2}

@@ -14,7 +14,7 @@
     "android": {
       "package": "com.archont.mealplanner",
       "adaptiveIcon": {
-        "backgroundColor": "#D3E8DC",
+        "backgroundColor": "#1D9E75",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -27,7 +27,19 @@
       "expo-status-bar",
       "expo-system-ui",
       "expo-font",
-      "./plugins/withLongPathCmake"
+      "./plugins/withLongPathCmake",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "backgroundColor": "#F7F9F7",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#111412"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
