@@ -2,7 +2,7 @@
   "expo": {
     "name": "Meal Planner",
     "slug": "mealplanner",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "scheme": "mealplanner",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -19,7 +19,8 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 1
     },
     "plugins": [
       "expo-router",
@@ -28,6 +29,7 @@
       "expo-system-ui",
       "expo-font",
       "./plugins/withLongPathCmake",
+      "./plugins/withReleaseSigning",
       [
         "expo-splash-screen",
         {

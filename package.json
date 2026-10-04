@@ -1,6 +1,6 @@
 {
   "name": "mealplanner-mobile",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
@@ -46,7 +46,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
     "sync:shared": "node scripts/sync-shared.mjs",
-    "check:shared": "node scripts/sync-shared.mjs --check"
+    "check:shared": "node scripts/sync-shared.mjs --check",
+    "build:apk": "expo prebuild --platform android && cd android && gradlew.bat assembleRelease -PreactNativeArchitectures=arm64-v8a"
   },
   "private": true
 }

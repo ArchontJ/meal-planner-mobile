@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Release signing key and its passwords (back them up – the app cannot be updated without them)
+/credentials/
