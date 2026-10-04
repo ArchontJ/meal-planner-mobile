@@ -4,6 +4,7 @@ import Constants from "expo-constants";
 import { Stack, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { LogBox, View } from "react-native";
@@ -26,6 +27,11 @@ void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const { theme, navigation } = useResolvedTheme();
+
+  // The window behind the app (seen while it loads or between screens) follows the app theme.
+  useEffect(() => {
+    void SystemUI.setBackgroundColorAsync(theme.colors.background);
+  }, [theme.colors.background]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

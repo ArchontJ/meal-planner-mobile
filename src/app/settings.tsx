@@ -66,16 +66,22 @@ export default function SettingsScreen() {
           <List.Item
             title={t("mobile.settings.dynamicColor")}
             description={t("mobile.settings.dynamicColorHint")}
+            onPress={() => prefs.setDynamicColor(!prefs.dynamicColor)}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: prefs.dynamicColor }}
             left={(props) => <List.Icon {...props} icon="palette-outline" />}
-            right={() => <Switch value={prefs.dynamicColor} onValueChange={prefs.setDynamicColor} />}
+            right={() => <Switch value={prefs.dynamicColor} onValueChange={(v) => prefs.setDynamicColor(v)} />}
           />
         )}
         <List.Item
           title={t("mobile.settings.keepAwake")}
           titleNumberOfLines={2}
+          onPress={() => prefs.setKeepAwakeWhileCooking(!prefs.keepAwakeWhileCooking)}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: prefs.keepAwakeWhileCooking }}
           left={(props) => <List.Icon {...props} icon="cellphone-screenshot" />}
           right={() => (
-            <Switch value={prefs.keepAwakeWhileCooking} onValueChange={prefs.setKeepAwakeWhileCooking} />
+            <Switch value={prefs.keepAwakeWhileCooking} onValueChange={(v) => prefs.setKeepAwakeWhileCooking(v)} />
           )}
         />
       </Section>
