@@ -35,6 +35,20 @@
       "ingredients": "Ingredients",
       "fewerPortions": "Fewer portions",
       "morePortions": "More portions"
+    },
+    "recipes": {
+      "mine": "Mine",
+      "searchMine": "Search recipes",
+      "searchShared": "Search inspirations",
+      "filters": "Filters and sorting",
+      "sortBy": "Sort by",
+      "clearFilters": "Clear",
+      "noMatches": "Nothing matches the search and filters.",
+      "save": "Save",
+      "saved": "Saved",
+      "count_one": "{{count}} recipe",
+      "count_other": "{{count}} recipes",
+      "cook": "Cook"
     }
   }
 }

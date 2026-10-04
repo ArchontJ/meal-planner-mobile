@@ -22,7 +22,7 @@ export type CookRecipe = {
 
 export type CookProduct = { key: string; name: string; producer: string | null; grams: number; macros: Macros };
 
-const STEP = 0.5;
+export const PORTION_STEP = 0.5;
 const MAX_PORTIONS = 20;
 
 /**
@@ -32,8 +32,11 @@ const MAX_PORTIONS = 20;
 export function CookingView({
   recipes,
   products = [],
+  showRecipeHeadings = true,
 }: {
   recipes: CookRecipe[];
+  /** Name above each recipe's instructions: useful in a meal, redundant for a single recipe. */
+  showRecipeHeadings?: boolean;
   products?: CookProduct[];
 }) {
   const { t, i18n } = useTranslation();
@@ -55,19 +58,7 @@ export function CookingView({
     <View style={{ flex: 1 }}>
       {keepAwake && <KeepAwake />}
       <View style={{ paddingHorizontal: 16, paddingBottom: 8, gap: 10 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            backgroundColor: theme.colors.surfaceContainerLow,
-            borderRadius: 16,
-            paddingVertical: 10,
-          }}
-        >
-          <MacroStat value={formatKcal(macros.kcal)} label="kcal" />
-          <MacroStat value={formatGramsLabel(macros.protein, lang)} label={t("macros.protein")} color={theme.colors.macroProtein} />
-          <MacroStat value={formatGramsLabel(macros.fat, lang)} label={t("macros.fat")} color={theme.colors.macroFat} />
-          <MacroStat value={formatGramsLabel(macros.carbs, lang)} label={t("macros.carbs")} color={theme.colors.macroCarbs} />
-        </View>
+        <MacroSummary macros={macros} />
         <SegmentedButtons
           value={tab}
           onValueChange={(v) => setTab(v as typeof tab)}
@@ -95,7 +86,7 @@ export function CookingView({
                     />
                   </View>
                   {r.ingredientsPerPortion.map((ing, i) => (
-                    <Row key={i} name={ing.name} amount={formatGramsLabel(ing.grams * n, lang)} />
+                    <IngredientRow key={i} name={ing.name} amount={formatGramsLabel(ing.grams * n, lang)} />
                   ))}
                   {r.serveWith ? (
                     <View style={{ backgroundColor: theme.colors.surfaceContainerLow, borderRadius: 12, padding: 12, marginTop: 6 }}>
@@ -112,7 +103,7 @@ export function CookingView({
               <View style={{ gap: 6 }}>
                 <Text variant="titleMedium">{t("home.additionalProducts")}</Text>
                 {products.map((p) => (
-                  <Row
+                  <IngredientRow
                     key={p.key}
                     name={p.producer ? `${p.name} (${p.producer})` : p.name}
                     amount={formatGramsLabel(p.grams, lang)}
@@ -124,12 +115,14 @@ export function CookingView({
         ) : (
           recipes.map((r) => (
             <View key={r.key} style={{ gap: 8 }}>
-              <View style={{ borderLeftWidth: 3, borderLeftColor: theme.colors.primary, paddingLeft: 10 }}>
-                <Text variant="titleMedium">{r.name}</Text>
-                <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-                  {t("plan.portionsCount", { count: portionsOf(r), value: formatNumber(portionsOf(r), lang, 2) })}
-                </Text>
-              </View>
+              {showRecipeHeadings && (
+                <View style={{ borderLeftWidth: 3, borderLeftColor: theme.colors.primary, paddingLeft: 10 }}>
+                  <Text variant="titleMedium">{r.name}</Text>
+                  <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                    {t("plan.portionsCount", { count: portionsOf(r), value: formatNumber(portionsOf(r), lang, 2) })}
+                  </Text>
+                </View>
+              )}
               {r.instructions?.trim() ? (
                 <MarkdownText text={r.instructions} />
               ) : (
@@ -150,8 +143,27 @@ export function CookingView({
   );
 }
 
-function Row({ name, amount }: { name: string; amount: string }) {
+export function IngredientRow({ name, amount, badge }: { name: string; amount: string; badge?: string }) {
   const theme = useAppTheme();
+  if (badge) {
+    return (
+      <View style={{ paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: theme.colors.outlineVariant, gap: 4 }}>
+        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 12 }}>
+          <Text variant="bodyLarge" style={{ flex: 1 }}>
+            {name}
+          </Text>
+          <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant, fontVariant: ["tabular-nums"] }}>
+            {amount}
+          </Text>
+        </View>
+        <View style={{ alignSelf: "flex-start", backgroundColor: theme.colors.tertiaryContainer, borderRadius: 6, paddingHorizontal: 6 }}>
+          <Text variant="labelSmall" style={{ color: theme.colors.onTertiaryContainer }}>
+            {badge}
+          </Text>
+        </View>
+      </View>
+    );
+  }
   return (
     <View
       style={{
@@ -169,6 +181,21 @@ function Row({ name, amount }: { name: string; amount: string }) {
       <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant, fontVariant: ["tabular-nums"] }}>
         {amount}
       </Text>
+    </View>
+  );
+}
+
+/** kcal and macros in one bar, macros in their chart colours. */
+export function MacroSummary({ macros }: { macros: Macros }) {
+  const { t, i18n } = useTranslation();
+  const theme = useAppTheme();
+  const lang = i18n.language;
+  return (
+    <View style={{ flexDirection: "row", backgroundColor: theme.colors.surfaceContainerLow, borderRadius: 16, paddingVertical: 10 }}>
+      <MacroStat value={formatKcal(macros.kcal)} label="kcal" />
+      <MacroStat value={formatGramsLabel(macros.protein, lang)} label={t("macros.protein")} color={theme.colors.macroProtein} />
+      <MacroStat value={formatGramsLabel(macros.fat, lang)} label={t("macros.fat")} color={theme.colors.macroFat} />
+      <MacroStat value={formatGramsLabel(macros.carbs, lang)} label={t("macros.carbs")} color={theme.colors.macroCarbs} />
     </View>
   );
 }
@@ -192,7 +219,7 @@ function MacroStat({ value, label, color }: { value: string; label: string; colo
 }
 
 /** Compact − 1,5 + pill; the unit word is read out, not shown, to save space. */
-function PortionStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+export function PortionStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const { t, i18n } = useTranslation();
   const theme = useAppTheme();
   return (
@@ -204,8 +231,8 @@ function PortionStepper({ value, onChange }: { value: number; onChange: (v: numb
         icon="minus"
         size={16}
         style={{ margin: 0 }}
-        disabled={value <= STEP}
-        onPress={() => onChange(Math.max(STEP, value - STEP))}
+        disabled={value <= PORTION_STEP}
+        onPress={() => onChange(Math.max(PORTION_STEP, value - PORTION_STEP))}
         accessibilityLabel={t("mobile.cooking.fewerPortions")}
       />
       <Text variant="labelLarge" style={{ minWidth: 28, textAlign: "center" }}>
@@ -216,7 +243,7 @@ function PortionStepper({ value, onChange }: { value: number; onChange: (v: numb
         size={16}
         style={{ margin: 0 }}
         disabled={value >= MAX_PORTIONS}
-        onPress={() => onChange(Math.min(MAX_PORTIONS, value + STEP))}
+        onPress={() => onChange(Math.min(MAX_PORTIONS, value + PORTION_STEP))}
         accessibilityLabel={t("mobile.cooking.morePortions")}
       />
     </View>

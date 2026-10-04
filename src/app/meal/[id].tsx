@@ -1,19 +1,18 @@
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
-import { ActivityIndicator, HelperText, Text } from "react-native-paper";
+import { ActivityIndicator, HelperText } from "react-native-paper";
+import { HeaderTitle } from "@/components/HeaderTitle";
 import { CookingView, type CookProduct, type CookRecipe } from "@/features/cooking/CookingView";
 import { useMeal } from "@/features/plan/api";
 import { formatDate, isISODate } from "@/lib/dates";
 import { scaleMacros } from "@/lib/nutrition";
-import { useAppTheme } from "@/theme/theme";
 
 /** Cooking view of a planned meal: its recipes at the planned portions, plus its extra products. */
 export default function MealScreen() {
   const { t, i18n } = useTranslation();
   const { id, label, date } = useLocalSearchParams<{ id: string; label?: string; date?: string }>();
   const meal = useMeal(id);
-  const theme = useAppTheme();
 
   const dateText =
     date && isISODate(date) ? formatDate(date, i18n.language, { weekday: "long", day: "numeric", month: "long" }) : "";
@@ -21,16 +20,7 @@ export default function MealScreen() {
     <Stack.Screen
       options={{
         title: label ?? "",
-        headerTitle: () => (
-          <View>
-            <Text variant="titleLarge">{label}</Text>
-            {dateText ? (
-              <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-                {dateText}
-              </Text>
-            ) : null}
-          </View>
-        ),
+        headerTitle: () => <HeaderTitle title={label ?? ""} subtitle={dateText} />,
       }}
     />
   );

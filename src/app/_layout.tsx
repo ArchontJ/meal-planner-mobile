@@ -3,12 +3,18 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useTranslation } from "react-i18next";
+import { LogBox } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
 import { useAuthBootstrap } from "@/features/auth/useAuthBootstrap";
 import { ProfilePreferencesSync } from "@/features/profile/ProfilePreferencesSync";
 import { queryClient } from "@/lib/queryClient";
 import { useResolvedTheme, type AppTheme } from "@/theme/theme";
+
+// Development builds only: Expo Router updates navigation state while resolving the
+// dev-client launch link before its container has mounted, which React reports as an error.
+// It cannot happen in a release build (no dev-client link) and changes nothing for the app.
+if (__DEV__) LogBox.ignoreLogs(["Can't perform a React state update on a component that hasn't mounted yet"]);
 
 export default function RootLayout() {
   const { theme, navigation } = useResolvedTheme();
@@ -51,6 +57,9 @@ function RootStack({ theme }: { theme: AppTheme }) {
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="settings" options={{ title: t("mobile.settings.title") }} />
           <Stack.Screen name="meal/[id]" />
+          <Stack.Screen name="recipe/[id]" />
+          <Stack.Screen name="shared/[id]" />
+          <Stack.Screen name="cook/[id]" />
         </Stack.Protected>
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="sign-in" options={{ headerShown: false }} />
