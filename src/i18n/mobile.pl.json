@@ -33,8 +33,8 @@
     },
     "cooking": {
       "ingredients": "Składniki",
-      "fewerPortions": "Mniej porcji",
-      "morePortions": "Więcej porcji"
+      "decrease": "Zmniejsz",
+      "increase": "Zwiększ"
     },
     "recipes": {
       "mine": "Moje",
@@ -51,6 +51,24 @@
       "count_many": "{{count}} przepisów",
       "count_other": "{{count}} przepisu",
       "cook": "Gotuj"
+    },
+    "shopping": {
+      "next3": "Najbliższe 3 dni",
+      "persons": "Liczba osób",
+      "productsCount_one": "{{count}} produkt",
+      "productsCount_few": "{{count}} produkty",
+      "productsCount_many": "{{count}} produktów",
+      "productsCount_other": "{{count}} produktu",
+      "boughtOf": "{{bought}} z {{total}} kupione",
+      "boughtSection": "Kupione ({{count}})",
+      "allBought": "Wszystko kupione",
+      "share": "Udostępnij listę (do kupienia)",
+      "shareFull": "Udostępnij całą listę",
+      "more": "Więcej opcji",
+      "refreshShort": "Odśwież",
+      "emptyTitle": "Brak list zakupów",
+      "emptyBody": "Utwórz listę z zaplanowanych posiłków – ilości zsumują się tak jak na komputerze.",
+      "localNote": "Listy są zapisane tylko na tym telefonie."
     }
   }
 }

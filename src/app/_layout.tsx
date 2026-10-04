@@ -60,6 +60,8 @@ function RootStack({ theme }: { theme: AppTheme }) {
           <Stack.Screen name="recipe/[id]" />
           <Stack.Screen name="shared/[id]" />
           <Stack.Screen name="cook/[id]" />
+          <Stack.Screen name="shopping/new" />
+          <Stack.Screen name="shopping/[id]" />
         </Stack.Protected>
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="sign-in" options={{ headerShown: false }} />

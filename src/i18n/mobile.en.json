@@ -33,8 +33,8 @@
     },
     "cooking": {
       "ingredients": "Ingredients",
-      "fewerPortions": "Fewer portions",
-      "morePortions": "More portions"
+      "decrease": "Decrease",
+      "increase": "Increase"
     },
     "recipes": {
       "mine": "Mine",
@@ -49,6 +49,22 @@
       "count_one": "{{count}} recipe",
       "count_other": "{{count}} recipes",
       "cook": "Cook"
+    },
+    "shopping": {
+      "next3": "Next 3 days",
+      "persons": "People",
+      "productsCount_one": "{{count}} product",
+      "productsCount_other": "{{count}} products",
+      "boughtOf": "{{bought}} of {{total}} bought",
+      "boughtSection": "Bought ({{count}})",
+      "allBought": "Everything bought",
+      "share": "Share list (to buy)",
+      "shareFull": "Share the whole list",
+      "more": "More options",
+      "refreshShort": "Refresh",
+      "emptyTitle": "No shopping lists",
+      "emptyBody": "Create a list from planned meals – amounts add up the same way as on the desktop.",
+      "localNote": "Lists are saved only on this phone."
     }
   }
 }

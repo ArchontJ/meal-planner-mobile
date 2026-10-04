@@ -218,22 +218,37 @@ function MacroStat({ value, label, color }: { value: string; label: string; colo
   );
 }
 
-/** Compact − 1,5 + pill; the unit word is read out, not shown, to save space. */
-export function PortionStepper({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+/**
+ * Compact − 1,5 + pill; the unit word is read out, not shown, to save space.
+ * Portions by default (steps of ½, up to 20); pass step/min for whole numbers such as people.
+ */
+export function PortionStepper({
+  value,
+  onChange,
+  step = PORTION_STEP,
+  min = step,
+  max = MAX_PORTIONS,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  step?: number;
+  min?: number;
+  max?: number;
+}) {
   const { t, i18n } = useTranslation();
   const theme = useAppTheme();
   return (
     <View
       style={{ flexDirection: "row", alignItems: "center", borderRadius: 999, borderWidth: 1, borderColor: theme.colors.outlineVariant }}
-      accessibilityLabel={t("plan.portionsCount", { count: value, value: formatNumber(value, i18n.language, 2) })}
+      accessibilityLabel={formatNumber(value, i18n.language, 2)}
     >
       <IconButton
         icon="minus"
         size={16}
         style={{ margin: 0 }}
-        disabled={value <= PORTION_STEP}
-        onPress={() => onChange(Math.max(PORTION_STEP, value - PORTION_STEP))}
-        accessibilityLabel={t("mobile.cooking.fewerPortions")}
+        disabled={value <= min}
+        onPress={() => onChange(Math.max(min, value - step))}
+        accessibilityLabel={t("mobile.cooking.decrease")}
       />
       <Text variant="labelLarge" style={{ minWidth: 28, textAlign: "center" }}>
         {formatNumber(value, i18n.language, 2)}
@@ -242,9 +257,9 @@ export function PortionStepper({ value, onChange }: { value: number; onChange: (
         icon="plus"
         size={16}
         style={{ margin: 0 }}
-        disabled={value >= MAX_PORTIONS}
-        onPress={() => onChange(Math.min(MAX_PORTIONS, value + PORTION_STEP))}
-        accessibilityLabel={t("mobile.cooking.morePortions")}
+        disabled={value >= max}
+        onPress={() => onChange(Math.min(max, value + step))}
+        accessibilityLabel={t("mobile.cooking.increase")}
       />
     </View>
   );
