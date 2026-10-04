@@ -53,3 +53,5 @@ Companion to the desktop app (Tauri + React, repo `../MealPlanner New`). Documen
 **Rules from the desktop:** dates are local `YYYY-MM-DD` (`@/lib/dates`, never `toISOString`); macros unrounded until display; Polish decimal comma and plurals via i18next; goal status = icon + word, never colour alone.
 
 Package name `com.archont.mealplanner`. Build and run on a device: `npm run android`.
+
+**Release (v1.0.0 shipped 2026-10-04):** local Gradle build signed with `credentials/mealplanner-release.jks` via `plugins/withReleaseSigning.js` (credentials are git-ignored and backed up by the user). Bump `version` + `android.versionCode` in `app.json`, stop the bundler, `npm run build:apk`, install the APK with `adb install -r`, tag `v1.x.y`. Dev build and release share the app ID but not the key – switching requires an uninstall that deletes phone-only data (ask the user first). Windows build needs JDK 17 (`JAVA_HOME`), CMake 3.31.6 (`plugins/withLongPathCmake.js`) and LongPathsEnabled.
