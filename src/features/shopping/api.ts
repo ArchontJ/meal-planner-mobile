@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { orderCategories } from "@/features/products/categoryOrder";
@@ -75,12 +75,8 @@ export function useShoppingSource(from: ISODate, to: ISODate, enabled = true) {
   });
 }
 
-/** Category names and the user's shop order (profile.category_order), as on the desktop. */
-export function useCategoryInfo(): ReadonlyMap<string, CategoryInfo> {
-  const { i18n } = useTranslation();
-  const userId = useAuth((s) => s.session?.user.id);
-  const { data: profile } = useProfile();
-  const { data: categories = [] } = useQuery({
+export const productCategoriesOptions = (userId: string | undefined) =>
+  queryOptions({
     queryKey: ["product_categories", userId],
     enabled: Boolean(userId),
     staleTime: 5 * 60_000,
@@ -95,6 +91,13 @@ export function useCategoryInfo(): ReadonlyMap<string, CategoryInfo> {
       return data;
     },
   });
+
+/** Category names and the user's shop order (profile.category_order), as on the desktop. */
+export function useCategoryInfo(): ReadonlyMap<string, CategoryInfo> {
+  const { i18n } = useTranslation();
+  const userId = useAuth((s) => s.session?.user.id);
+  const { data: profile } = useProfile();
+  const { data: categories = [] } = useQuery(productCategoriesOptions(userId));
   return useMemo(() => {
     const ordered = orderCategories(categories, profile?.category_order ?? []);
     return new Map(ordered.map((c, index) => [c.id, { id: c.id, name: productCategoryLabel(c, i18n.language), order: index }]));

@@ -1,14 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import type { TablesUpdate } from "@/types/database";
 
 const profileKey = (userId: string | undefined) => ["profile", userId] as const;
 
-export function useProfile() {
-  const userId = useAuth((s) => s.session?.user.id);
-
-  return useQuery({
+export const profileOptions = (userId: string | undefined) =>
+  queryOptions({
     queryKey: profileKey(userId),
     enabled: Boolean(userId),
     queryFn: async () => {
@@ -17,6 +15,10 @@ export function useProfile() {
       return data;
     },
   });
+
+export function useProfile() {
+  const userId = useAuth((s) => s.session?.user.id);
+  return useQuery(profileOptions(userId));
 }
 
 /** The phone only writes language and theme; everything else is edited on the desktop. */

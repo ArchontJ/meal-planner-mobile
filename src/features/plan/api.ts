@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toPlanMeal, type MealRow, type PlanMeal } from "@/features/plan/model";
 import { useAuth } from "@/lib/auth";
 import type { ISODate } from "@/lib/dates";
@@ -16,10 +16,9 @@ const MEAL_SELECT = `
     )
   )`;
 
-/** All meals in [from, to] (inclusive), e.g. one week. */
-export function useMealsRange(from: ISODate, to: ISODate) {
-  const userId = useAuth((s) => s.session?.user.id);
-  return useQuery({
+/** Meals in [from, to] (inclusive); the Plan screen asks for whole weeks (Monday–Sunday). */
+export const mealsRangeOptions = (userId: string | undefined, from: ISODate, to: ISODate) =>
+  queryOptions({
     queryKey: ["meals", userId, from, to],
     enabled: Boolean(userId),
     queryFn: async (): Promise<PlanMeal[]> => {
@@ -28,12 +27,15 @@ export function useMealsRange(from: ISODate, to: ISODate) {
       return (data as unknown as MealRow[]).map(toPlanMeal);
     },
   });
+
+export function useMealsRange(from: ISODate, to: ISODate) {
+  const userId = useAuth((s) => s.session?.user.id);
+  return useQuery(mealsRangeOptions(userId, from, to));
 }
 
 /** Meal slots in plan order (hidden ones included). */
-export function useMealSlots() {
-  const userId = useAuth((s) => s.session?.user.id);
-  return useQuery({
+export const mealSlotsOptions = (userId: string | undefined) =>
+  queryOptions({
     queryKey: ["meal_slots", userId],
     enabled: Boolean(userId),
     queryFn: async () => {
@@ -42,6 +44,10 @@ export function useMealSlots() {
       return data;
     },
   });
+
+export function useMealSlots() {
+  const userId = useAuth((s) => s.session?.user.id);
+  return useQuery(mealSlotsOptions(userId));
 }
 
 /** One planned meal (cooking view); starts from the plan already loaded, then refreshes. */

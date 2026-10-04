@@ -1,14 +1,17 @@
 import "@/i18n";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import Constants from "expo-constants";
 import { Stack, ThemeProvider } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useTranslation } from "react-i18next";
-import { LogBox } from "react-native";
+import { LogBox, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PaperProvider } from "react-native-paper";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import { useAuthBootstrap } from "@/features/auth/useAuthBootstrap";
+import { useOfflinePrefetch } from "@/features/offline/useOfflinePrefetch";
 import { ProfilePreferencesSync } from "@/features/profile/ProfilePreferencesSync";
-import { queryClient } from "@/lib/queryClient";
+import { OFFLINE_MAX_AGE, queryClient, queryPersister } from "@/lib/queryClient";
 import { useResolvedTheme, type AppTheme } from "@/theme/theme";
 
 // Development builds only: Expo Router updates navigation state while resolving the
@@ -21,14 +24,22 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{
+          persister: queryPersister,
+          maxAge: OFFLINE_MAX_AGE,
+          // A new app version starts with a fresh cache, so changed data shapes never load.
+          buster: Constants.expoConfig?.version ?? "",
+        }}
+      >
         <PaperProvider theme={theme}>
           <ThemeProvider value={navigation}>
             <StatusBar style={theme.dark ? "light" : "dark"} />
             <RootStack theme={theme} />
           </ThemeProvider>
         </PaperProvider>
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     </GestureHandlerRootView>
   );
 }
@@ -41,6 +52,7 @@ function RootStack({ theme }: { theme: AppTheme }) {
   const { t } = useTranslation();
   const status = useAuthBootstrap();
   const signedIn = status === "signedIn";
+  useOfflinePrefetch();
 
   return (
     <>
@@ -52,6 +64,17 @@ function RootStack({ theme }: { theme: AppTheme }) {
           headerShadowVisible: false,
           contentStyle: { backgroundColor: theme.colors.background },
         }}
+        // Offline banner under the header of stacked screens; the tabs show it in their own header.
+        screenLayout={({ route, children }) =>
+          route.name === "(tabs)" || route.name === "sign-in" ? (
+            children
+          ) : (
+            <View style={{ flex: 1 }}>
+              <OfflineBanner />
+              {children}
+            </View>
+          )
+        }
       >
         <Stack.Protected guard={signedIn}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

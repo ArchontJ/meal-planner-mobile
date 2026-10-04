@@ -7,9 +7,12 @@ import { AppHeader } from "@/components/AppHeader";
 
 type IconName = keyof typeof MaterialCommunityIcons.glyphMap;
 
-const tabIcon =
-  (name: IconName) =>
-  ({ color, size }: { color: ColorValue; size: number }) => <MaterialCommunityIcons name={name} color={color} size={size} />;
+const tabIcon = (name: IconName) => {
+  const TabIcon = ({ color, size }: { color: ColorValue; size: number }) => (
+    <MaterialCommunityIcons name={name} color={color} size={size} />
+  );
+  return TabIcon;
+};
 
 // Three tabs; profile and settings open from the avatar in the header.
 export default function TabsLayout() {

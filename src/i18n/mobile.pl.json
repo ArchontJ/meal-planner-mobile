@@ -69,6 +69,7 @@
       "emptyTitle": "Brak list zakupów",
       "emptyBody": "Utwórz listę z zaplanowanych posiłków – ilości zsumują się tak jak na komputerze.",
       "localNote": "Listy są zapisane tylko na tym telefonie."
-    }
+    },
+    "offline": "Brak połączenia – pokazuję zapisane dane. Odświeżą się po odzyskaniu połączenia."
   }
 }

@@ -46,12 +46,12 @@ export default function RecipesScreen() {
     .filter((s) => s.is_active && (mode === "mine" || s.default_key))
     .map((s) => ({ key: mode === "mine" ? s.id : s.default_key!, label: mealSlotLabel(s, t) }));
 
-  const source = mode === "mine" ? (mine.data ?? []) : (shared.data ?? []);
   const availableTags = useMemo(() => {
+    const source = mode === "mine" ? (mine.data ?? []) : (shared.data ?? []);
     const counts = new Map<string, number>();
     for (const r of source) for (const tag of r.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
     return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "pl")).map(([tag]) => tag);
-  }, [source]);
+  }, [mode, mine.data, shared.data]);
 
   const sections = useMemo(() => {
     if (mode === "mine") {

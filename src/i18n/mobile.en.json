@@ -65,6 +65,7 @@
       "emptyTitle": "No shopping lists",
       "emptyBody": "Create a list from planned meals – amounts add up the same way as on the desktop.",
       "localNote": "Lists are saved only on this phone."
-    }
+    },
+    "offline": "Offline – showing saved data. It refreshes when the connection is back."
   }
 }

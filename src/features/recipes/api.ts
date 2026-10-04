@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
 import { productMacros, sumMacros, type Macros } from "@/lib/nutrition";
 import { supabase } from "@/lib/supabase";
@@ -54,7 +54,11 @@ const useUserId = () => useAuth((s) => s.session?.user.id);
 
 export function useMyRecipes() {
   const userId = useUserId();
-  return useQuery({
+  return useQuery(myRecipesOptions(userId));
+}
+
+export const myRecipesOptions = (userId: string | undefined) =>
+  queryOptions({
     queryKey: ["recipes", "list", userId],
     enabled: Boolean(userId),
     queryFn: async (): Promise<RecipeListItem[]> => {
@@ -83,37 +87,58 @@ export function useMyRecipes() {
       });
     },
   });
+
+const RECIPE_DETAIL_SELECT = `id, name, instructions, serve_with, tags, recipe_meal_slots(slot_id),
+  recipe_ingredients(grams, position, product:products(name, kcal, protein, fat, carbs, archived_at))`;
+
+type RecipeDetailRow = {
+  id: string;
+  name: string;
+  instructions: string | null;
+  serve_with: string | null;
+  tags: string[];
+  recipe_meal_slots: { slot_id: string }[];
+  recipe_ingredients: {
+    grams: number;
+    position: number;
+    product: { name: string; kcal: number; protein: number; fat: number; carbs: number; archived_at: string | null };
+  }[];
+};
+
+function toRecipeDetail(data: RecipeDetailRow): RecipeDetail {
+  const ingredients = [...data.recipe_ingredients].sort((a, b) => a.position - b.position);
+  return {
+    id: data.id,
+    name: data.name,
+    instructions: data.instructions,
+    serve_with: data.serve_with,
+    tags: data.tags,
+    slotIds: data.recipe_meal_slots.map((l) => l.slot_id),
+    ingredients: ingredients.map((i) => ({ name: i.product.name, grams: i.grams, archived: i.product.archived_at !== null })),
+    macros: sumMacros(ingredients.map((i) => productMacros(i.product, i.grams))),
+  };
 }
+
+export const recipeDetailKey = (userId: string | undefined, id: string) => ["recipes", "detail", userId, id] as const;
 
 export function useRecipe(id: string) {
   const userId = useUserId();
   return useQuery({
-    queryKey: ["recipes", "detail", userId, id],
+    queryKey: recipeDetailKey(userId, id),
     enabled: Boolean(userId),
     queryFn: async (): Promise<RecipeDetail> => {
-      const { data, error } = await supabase
-        .from("recipes")
-        .select(
-          `id, name, instructions, serve_with, tags, recipe_meal_slots(slot_id),
-           recipe_ingredients(grams, position, product:products(name, kcal, protein, fat, carbs, archived_at))`,
-        )
-        .eq("id", id)
-        .single();
+      const { data, error } = await supabase.from("recipes").select(RECIPE_DETAIL_SELECT).eq("id", id).single();
       if (error) throw error;
-
-      const ingredients = [...data.recipe_ingredients].sort((a, b) => a.position - b.position);
-      return {
-        id: data.id,
-        name: data.name,
-        instructions: data.instructions,
-        serve_with: data.serve_with,
-        tags: data.tags,
-        slotIds: data.recipe_meal_slots.map((l) => l.slot_id),
-        ingredients: ingredients.map((i) => ({ name: i.product.name, grams: i.grams, archived: i.product.archived_at !== null })),
-        macros: sumMacros(ingredients.map((i) => productMacros(i.product, i.grams))),
-      };
+      return toRecipeDetail(data as unknown as RecipeDetailRow);
     },
   });
+}
+
+/** All the user's recipes with ingredients in one request – used to make them available offline. */
+export async function fetchAllRecipeDetails(): Promise<RecipeDetail[]> {
+  const { data, error } = await supabase.from("recipes").select(RECIPE_DETAIL_SELECT).is("archived_at", null);
+  if (error) throw error;
+  return (data as unknown as RecipeDetailRow[]).map(toRecipeDetail);
 }
 
 function toSharedRecipe(r: Tables<"shared_recipes">): SharedRecipe {
@@ -133,9 +158,8 @@ function toSharedRecipe(r: Tables<"shared_recipes">): SharedRecipe {
 }
 
 /** Recipes other people share (the user's own shared recipes are left out). */
-export function useSharedRecipes() {
-  const userId = useUserId();
-  return useQuery({
+export const sharedRecipesOptions = (userId: string | undefined) =>
+  queryOptions({
     queryKey: ["shared_recipes", userId],
     enabled: Boolean(userId),
     queryFn: async () => {
@@ -144,10 +168,18 @@ export function useSharedRecipes() {
       return data.map(toSharedRecipe).filter((r) => r.author_id !== userId);
     },
   });
+
+export function useSharedRecipes() {
+  const userId = useUserId();
+  return useQuery(sharedRecipesOptions(userId));
 }
 
 export function useSharedRecipeIngredients(recipeId: string) {
-  return useQuery({
+  return useQuery(sharedIngredientsOptions(recipeId));
+}
+
+export const sharedIngredientsOptions = (recipeId: string) =>
+  queryOptions({
     queryKey: ["shared_recipes", "ingredients", recipeId],
     queryFn: async (): Promise<SharedIngredient[]> => {
       const { data, error } = await supabase
@@ -165,22 +197,25 @@ export function useSharedRecipeIngredients(recipeId: string) {
       }));
     },
   });
-}
 
 // Bookmarks ("Zapisane"), shared with the desktop (table saved_shared_recipes).
 const savedKey = (userId: string | undefined) => ["shared_recipes", "saved", userId] as const;
 
+// Stored as an array: the query cache is saved on the phone as JSON, which has no Set.
+async function fetchSavedIds(): Promise<string[]> {
+  const { data, error } = await supabase.from("saved_shared_recipes").select("recipe_id");
+  if (error) throw error;
+  return data.map((r) => r.recipe_id);
+}
+
+const toSet = (ids: string[]) => new Set(ids);
+
+export const savedIdsOptions = (userId: string | undefined) =>
+  queryOptions({ queryKey: savedKey(userId), enabled: Boolean(userId), queryFn: fetchSavedIds });
+
 export function useSavedSharedRecipeIds() {
   const userId = useUserId();
-  return useQuery({
-    queryKey: savedKey(userId),
-    enabled: Boolean(userId),
-    queryFn: async (): Promise<Set<string>> => {
-      const { data, error } = await supabase.from("saved_shared_recipes").select("recipe_id");
-      if (error) throw error;
-      return new Set(data.map((r) => r.recipe_id));
-    },
-  });
+  return useQuery({ ...savedIdsOptions(userId), select: toSet });
 }
 
 /** Adds or removes a bookmark; the set updates at once and rolls back if the save fails. */
@@ -200,11 +235,9 @@ export function useToggleSavedSharedRecipe() {
     },
     onMutate: async ({ recipeId, saved }) => {
       await queryClient.cancelQueries({ queryKey: key });
-      const previous = queryClient.getQueryData<Set<string>>(key);
-      const next = new Set(previous);
-      if (saved) next.add(recipeId);
-      else next.delete(recipeId);
-      queryClient.setQueryData(key, next);
+      const previous = queryClient.getQueryData<string[]>(key);
+      const others = (previous ?? []).filter((id) => id !== recipeId);
+      queryClient.setQueryData(key, saved ? [...others, recipeId] : others);
       return { previous };
     },
     onError: (_error, _vars, context) => queryClient.setQueryData(key, context?.previous),
