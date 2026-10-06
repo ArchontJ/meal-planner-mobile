@@ -146,7 +146,23 @@
     "portionsCount_one": "{{value}} porcja",
     "portionsCount_few": "{{value}} porcje",
     "portionsCount_many": "{{value}} porcji",
-    "portionsCount_other": "{{value}} porcji"
+    "portionsCount_other": "{{value}} porcji",
+    "share": {
+      "button": "Udostępnij plan",
+      "title": "Udostępnij plan",
+      "description": "Skopiuj plan jako tekst i wyślij go komuś do przejrzenia.",
+      "heading": "Plan posiłków {{range}}",
+      "visible": "Widoczne dni",
+      "preview": "Podgląd tekstu",
+      "copy": "Kopiuj",
+      "copied": "Skopiowano plan do schowka"
+    },
+    "fit": {
+      "remaining": "Zostało na dziś: {{kcal}} kcal · B {{protein}} g",
+      "over": "Cel kalorii przekroczony o {{kcal}} kcal",
+      "sortLabel": "Najpierw pasujące",
+      "fits": "pasuje"
+    }
   },
   "recipes": {
     "myRecipes": "Moje przepisy",
@@ -233,6 +249,10 @@
       "remove": "Usuń z zapisanych",
       "savedSection": "Zapisane ({{count}})",
       "allSection": "Wszystkie"
+    },
+    "usage": {
+      "last": "Ostatnio w planie: {{when}}",
+      "next": "Zaplanowany: {{when}}"
     }
   },
   "products": {
@@ -339,7 +359,24 @@
     "editRecipe": "Edytuj przepis",
     "additionalProducts": "Dodatkowe produkty",
     "products": "Produkty",
-    "noInstructions": "Brak instrukcji dla tego posiłku."
+    "noInstructions": "Brak instrukcji dla tego posiłku.",
+    "week": {
+      "title": "Tydzień",
+      "previous": "Poprzedni tydzień",
+      "next": "Następny tydzień",
+      "thisWeek": "Ten tydzień",
+      "empty": "W tym tygodniu nic nie zaplanowano.",
+      "summary": "Zaplanowane dni: {{planned}} · cel kalorii: {{kcalMet}} · białko: {{proteinMet}} · tłuszcz w zakresie: {{fatMet}}",
+      "kcalLegend": "cel {{kcal}} kcal ±10%",
+      "proteinLegend": "min. {{min}} g",
+      "fatLegend": "zakres {{min}}–{{max}}% kalorii",
+      "status": {
+        "ok": "w normie",
+        "under": "poniżej",
+        "over": "powyżej",
+        "none": "–"
+      }
+    }
   },
   "shopping": {
     "newList": "Nowa lista",

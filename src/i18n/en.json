@@ -144,7 +144,23 @@
     "portionsUnit": "portions",
     "noCarbTarget": "no target",
     "portionsCount_one": "{{value}} portion",
-    "portionsCount_other": "{{value}} portions"
+    "portionsCount_other": "{{value}} portions",
+    "share": {
+      "button": "Share plan",
+      "title": "Share the plan",
+      "description": "Copy the plan as text and send it to someone for review.",
+      "heading": "Meal plan {{range}}",
+      "visible": "Visible days",
+      "preview": "Text preview",
+      "copy": "Copy",
+      "copied": "Plan copied to the clipboard"
+    },
+    "fit": {
+      "remaining": "Left for today: {{kcal}} kcal · P {{protein}} g",
+      "over": "Calorie goal exceeded by {{kcal}} kcal",
+      "sortLabel": "Fitting first",
+      "fits": "fits"
+    }
   },
   "recipes": {
     "myRecipes": "My recipes",
@@ -229,6 +245,10 @@
       "remove": "Remove from saved",
       "savedSection": "Saved ({{count}})",
       "allSection": "All"
+    },
+    "usage": {
+      "last": "Last in the plan: {{when}}",
+      "next": "Planned: {{when}}"
     }
   },
   "products": {
@@ -333,7 +353,24 @@
     "editRecipe": "Edit recipe",
     "additionalProducts": "Additional products",
     "products": "Products",
-    "noInstructions": "No instructions for this meal."
+    "noInstructions": "No instructions for this meal.",
+    "week": {
+      "title": "Week",
+      "previous": "Previous week",
+      "next": "Next week",
+      "thisWeek": "This week",
+      "empty": "Nothing planned this week.",
+      "summary": "Planned days: {{planned}} · calorie goal met: {{kcalMet}} · protein: {{proteinMet}} · fat in range: {{fatMet}}",
+      "kcalLegend": "goal {{kcal}} kcal ±10%",
+      "proteinLegend": "min. {{min}} g",
+      "fatLegend": "range {{min}}–{{max}}% of calories",
+      "status": {
+        "ok": "on target",
+        "under": "below",
+        "over": "above",
+        "none": "–"
+      }
+    }
   },
   "shopping": {
     "newList": "New list",

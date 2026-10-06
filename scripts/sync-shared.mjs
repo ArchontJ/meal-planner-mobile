@@ -23,6 +23,9 @@ export const SHARED_FILES = [
   "src/features/recipes/filter.ts",
   "src/features/products/categoryOrder.ts",
   "src/types/database.ts",
+  // EAN check and Open Food Facts mapping, shared with the import-off-product Edge Function.
+  "supabase/functions/_shared/ean.ts",
+  "supabase/functions/_shared/off.ts",
   "src/i18n/pl.json",
   "src/i18n/en.json",
 ];

@@ -41,6 +41,14 @@
             "backgroundColor": "#111412"
           }
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Aparat służy do skanowania kodów kreskowych produktów.",
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": true
+        }
       ]
     ],
     "experiments": {

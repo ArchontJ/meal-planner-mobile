@@ -70,6 +70,29 @@
       "emptyBody": "Utwórz listę z zaplanowanych posiłków – ilości zsumują się tak jak na komputerze.",
       "localNote": "Listy są zapisane tylko na tym telefonie."
     },
-    "offline": "Brak połączenia – pokazuję zapisane dane. Odświeżą się po odzyskaniu połączenia."
+    "offline": "Brak połączenia – pokazuję zapisane dane. Odświeżą się po odzyskaniu połączenia.",
+    "scan": {
+      "title": "Skanuj produkt",
+      "hint": "Skieruj aparat na kod kreskowy",
+      "torch": "Latarka",
+      "looking": "Szukam produktu…",
+      "next": "Skanuj dalej",
+      "mine": "Twój produkt",
+      "newFromOff": "Nowy · Open Food Facts",
+      "categoryRequired": "Kategoria (wymagana)",
+      "notFoundTitle": "Nie znaleziono produktu",
+      "notFound": "Tego kodu nie ma w katalogu ani w Open Food Facts. Dodaj produkt na komputerze.",
+      "incomplete": "Open Food Facts ma niekompletne dane tego produktu. Dodaj go na komputerze – tam uzupełnisz brakujące wartości.",
+      "unavailableTitle": "Nie udało się sprawdzić produktu",
+      "offline": "Brak połączenia. Bez internetu rozpoznam tylko Twoje produkty.",
+      "permissionTitle": "Potrzebny dostęp do aparatu",
+      "permissionBody": "Aparat służy tylko do odczytu kodów kreskowych produktów.",
+      "allowCamera": "Zezwól na aparat",
+      "permissionSettings": "Dostęp został zablokowany – włącz go w ustawieniach Androida dla Meal Planner.",
+      "addToProducts": "Dodaj do produktów",
+      "importToProducts": "Dodaj do katalogu i produktów",
+      "alreadyMine": "Masz już ten produkt.",
+      "added": "Dodano do Twoich produktów"
+    }
   }
 }

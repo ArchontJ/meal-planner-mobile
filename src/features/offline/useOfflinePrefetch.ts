@@ -2,6 +2,7 @@ import { onlineManager, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { AppState } from "react-native";
 import { mealSlotsOptions, mealsRangeOptions } from "@/features/plan/api";
+import { myProductsOptions } from "@/features/products/api";
 import { profileOptions } from "@/features/profile/api";
 import {
   fetchAllRecipeDetails,
@@ -20,7 +21,7 @@ const MIN_INTERVAL = 10 * 60 * 1000;
 /**
  * While online, quietly loads what is needed in the kitchen and the shop without signal:
  * this week and next week of the plan (today + 7 days, in the Plan screen's weekly queries),
- * settings, all own recipes with ingredients, and the bookmarked inspirations.
+ * settings, the user's products (for scanning), all own recipes with ingredients, and the bookmarked inspirations.
  * Runs on start, when the connection comes back and when the app returns to the foreground
  * (at most every 10 minutes); the query cache is saved on the phone.
  */
@@ -43,6 +44,7 @@ export function useOfflinePrefetch() {
         queryClient.prefetchQuery(mealSlotsOptions(userId)),
         queryClient.prefetchQuery(profileOptions(userId)),
         queryClient.prefetchQuery(productCategoriesOptions(userId)),
+        queryClient.prefetchQuery(myProductsOptions(userId)),
         queryClient.prefetchQuery(myRecipesOptions(userId)),
         queryClient.prefetchQuery(sharedRecipesOptions(userId)),
         fetchAllRecipeDetails().then((recipes) => {

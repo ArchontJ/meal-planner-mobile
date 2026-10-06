@@ -66,6 +66,29 @@
       "emptyBody": "Create a list from planned meals – amounts add up the same way as on the desktop.",
       "localNote": "Lists are saved only on this phone."
     },
-    "offline": "Offline – showing saved data. It refreshes when the connection is back."
+    "offline": "Offline – showing saved data. It refreshes when the connection is back.",
+    "scan": {
+      "title": "Scan a product",
+      "hint": "Point the camera at a barcode",
+      "torch": "Torch",
+      "looking": "Looking up the product…",
+      "next": "Scan next",
+      "mine": "Your product",
+      "newFromOff": "New · Open Food Facts",
+      "categoryRequired": "Category (required)",
+      "notFoundTitle": "Product not found",
+      "notFound": "This code is neither in the catalog nor in Open Food Facts. Add the product on the desktop.",
+      "incomplete": "Open Food Facts has incomplete data for this product. Add it on the desktop, where you can fill in the missing values.",
+      "unavailableTitle": "Could not check the product",
+      "offline": "You are offline. Without internet only your own products are recognised.",
+      "permissionTitle": "Camera access needed",
+      "permissionBody": "The camera is used only to read product barcodes.",
+      "allowCamera": "Allow camera",
+      "permissionSettings": "Access is blocked – turn it on in Android settings for Meal Planner.",
+      "addToProducts": "Add to products",
+      "importToProducts": "Add to catalog and products",
+      "alreadyMine": "You already have this product.",
+      "added": "Added to your products"
+    }
   }
 }

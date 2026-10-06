@@ -81,7 +81,7 @@ function RootStack({ theme }: { theme: AppTheme }) {
         }}
         // Offline banner under the header of stacked screens; the tabs show it in their own header.
         screenLayout={({ route, children }) =>
-          route.name === "(tabs)" || route.name === "sign-in" ? (
+          route.name === "(tabs)" || route.name === "sign-in" || route.name === "scan" ? (
             children
           ) : (
             <View style={{ flex: 1 }}>
@@ -100,6 +100,7 @@ function RootStack({ theme }: { theme: AppTheme }) {
           <Stack.Screen name="cook/[id]" />
           <Stack.Screen name="shopping/new" />
           <Stack.Screen name="shopping/[id]" />
+          <Stack.Screen name="scan" options={{ headerShown: false }} />
         </Stack.Protected>
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="sign-in" options={{ headerShown: false }} />

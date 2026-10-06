@@ -681,6 +681,14 @@ export type Database = {
         }
         Returns: string
       }
+      recipe_usage: {
+        Args: { p_today: string }
+        Returns: {
+          last_date: string
+          next_date: string
+          recipe_id: string
+        }[]
+      }
       save_recipe: {
         Args: {
           p_id: string

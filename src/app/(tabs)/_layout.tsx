@@ -1,8 +1,8 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { Tabs } from "expo-router";
+import { router, Tabs } from "expo-router";
 import type { ColorValue } from "react-native";
 import { useTranslation } from "react-i18next";
-import { BottomNavigation } from "react-native-paper";
+import { BottomNavigation, IconButton } from "react-native-paper";
 import { AppHeader } from "@/components/AppHeader";
 
 type IconName = keyof typeof MaterialCommunityIcons.glyphMap;
@@ -42,7 +42,21 @@ export default function TabsLayout() {
         name="recipes"
         options={{ title: t("mobile.tabs.recipes"), tabBarIcon: tabIcon("book-open-variant") }}
       />
-      <Tabs.Screen name="shopping" options={{ title: t("mobile.tabs.shopping"), tabBarIcon: tabIcon("cart-outline") }} />
+      <Tabs.Screen
+        name="shopping"
+        options={{
+          title: t("mobile.tabs.shopping"),
+          tabBarIcon: tabIcon("cart-outline"),
+          header: ({ options }) => (
+            <AppHeader
+              title={options.title ?? ""}
+              actions={
+                <IconButton icon="barcode-scan" onPress={() => router.push("/scan")} accessibilityLabel={t("mobile.scan.title")} />
+              }
+            />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
