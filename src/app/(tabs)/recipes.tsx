@@ -96,14 +96,23 @@ export default function RecipesScreen() {
   return (
     <View style={{ flex: 1 }}>
       <View style={{ paddingHorizontal: 16, gap: 10, paddingBottom: 8 }}>
-        <SegmentedButtons
-          value={mode}
-          onValueChange={(v) => switchMode(v as Mode)}
-          buttons={[
-            { value: "mine", label: t("mobile.recipes.mine") },
-            { value: "shared", label: t("recipes.inspirations") },
-          ]}
-        />
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <SegmentedButtons
+            value={mode}
+            onValueChange={(v) => switchMode(v as Mode)}
+            buttons={[
+              { value: "mine", label: t("mobile.recipes.mine") },
+              { value: "shared", label: t("recipes.inspirations") },
+            ]}
+            style={{ flex: 1 }}
+          />
+          <IconButton
+            icon="camera-plus-outline"
+            mode="contained-tonal"
+            accessibilityLabel={t("mobile.recipes.fromPhoto")}
+            onPress={() => router.push("/recipe-reader-test")}
+          />
+        </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
           <Searchbar
             value={search}

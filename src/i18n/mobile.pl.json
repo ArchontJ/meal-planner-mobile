@@ -38,6 +38,7 @@
     },
     "recipes": {
       "mine": "Moje",
+      "fromPhoto": "Przepis ze zdjęcia",
       "searchMine": "Szukaj przepisu",
       "searchShared": "Szukaj w inspiracjach",
       "filters": "Filtry i sortowanie",

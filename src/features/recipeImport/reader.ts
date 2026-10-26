@@ -52,7 +52,8 @@ const UNICODE_FRACTIONS: Record<string, number> = { "½": 0.5, "⅓": 1 / 3, "�
 /** "2", "1,5", "1/2", "1 1/2", "½", "1½" → number; anything else → null. */
 export function num(s: string | undefined): number | null {
   if (!s) return null;
-  let v = s.trim().replace(",", ".");
+  // OCR and the model also write the fraction slash as "⁄" or "∕".
+  let v = s.trim().replace(",", ".").replace(/[⁄∕]/g, "/");
   const uni = /(\d*)\s*([½⅓⅔¼¾])/.exec(v);
   if (uni) return (uni[1] ? Number(uni[1]) : 0) + UNICODE_FRACTIONS[uni[2]!]!;
   const mixed = /^(\d+)\s+(\d+)\s*\/\s*(\d+)/.exec(v);
@@ -62,6 +63,12 @@ export function num(s: string | undefined): number | null {
   v = v.replace(/[^\d.]/g, "");
   const n = Number(v);
   return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/** The amount written in the source line ("awokado - 1/2 sztuki", "½ szklanki mleka"), if it is a fraction. */
+export function fractionInLine(line: string): number | null {
+  const m = /(?:^|[\s:–-])(\d+\s+\d+\s*[/⁄∕]\s*\d+|\d+\s*[/⁄∕]\s*\d+|\d*\s*[½⅓⅔¼¾])(?=\s|$)/.exec(line);
+  return m ? num(m[1]) : null;
 }
 
 /** "(60 g)", "(5 9)" (OCR reads g as 9), "(1,5 kg)" in the source line: the cookbook's own weight. */
@@ -224,7 +231,8 @@ export async function readRecipe(
       const original = sourceLine(name!, batch, i);
       ingredients.push({
         name: clean(name)!,
-        amount: num(amount),
+        // The model sometimes drops the slash ("1/3" → "13"); a fraction in the line wins.
+        amount: fractionInLine(original) ?? num(amount),
         unit: clean(unit),
         grams: gramsInLine(original) ?? num(grams),
         original,

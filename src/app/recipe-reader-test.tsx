@@ -18,6 +18,8 @@ type Run = {
   recipe: ReadRecipe;
 };
 
+const formatAmount = (n: number) => n.toLocaleString("pl-PL", { maximumFractionDigits: 2 });
+
 export default function RecipeReaderTest() {
   const theme = useAppTheme();
   const [photos, setPhotos] = useState<string[]>([]);
@@ -85,7 +87,10 @@ export default function RecipeReaderTest() {
       const result = { ocrMs, llmMs, ocrText, calls, recipe };
       setRun(result);
       // Also to logcat (adb) so the results can be compared on the computer.
-      console.log("[recipe-reader]", JSON.stringify({ photos: photos.length, ...result }));
+      // Logcat keeps at most ~4 KB per line: split the JSON into numbered parts.
+      const json = JSON.stringify({ photos: photos.length, ...result });
+      const parts = Math.ceil(json.length / 3000);
+      for (let i = 0; i < parts; i++) console.log(`[recipe-reader] ${i + 1}/${parts} ${json.slice(i * 3000, (i + 1) * 3000)}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
       log(`error: ${e instanceof Error ? e.message : String(e)}`);
@@ -175,7 +180,7 @@ export default function RecipeReaderTest() {
               </Text>
               {(p?.ingredients ?? []).map((ing, i) => (
                 <Text key={i} variant="bodyMedium">
-                  • {ing.name} — {ing.amount ?? "?"} {ing.unit ?? ""} {ing.grams != null ? `(${ing.grams} g)` : ""}
+                  • {ing.name} — {ing.amount != null ? formatAmount(ing.amount) : "?"} {ing.unit ?? ""} {ing.grams != null ? `(${ing.grams} g)` : ""}
                   {"\n"}
                   <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant }}>
                     {ing.original}
