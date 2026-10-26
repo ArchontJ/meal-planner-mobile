@@ -41,6 +41,23 @@ class RecipeReaderModule : Module() {
       result.textBlocks.joinToString("\n\n") { block -> block.lines.joinToString("\n") { it.text } }
     }
 
+    /** Text blocks with their position, so JS can put multi-column pages in reading order. */
+    AsyncFunction("recognizeBlocks") Coroutine { uri: String ->
+      val context = appContext.reactContext ?: throw CodedException("ERR_NO_CONTEXT", "No Android context", null)
+      val image = InputImage.fromFilePath(context, Uri.parse(uri))
+      val result = recognizer.process(image).await()
+      result.textBlocks.mapNotNull { block ->
+        val box = block.boundingBox ?: return@mapNotNull null
+        mapOf(
+          "text" to block.lines.joinToString("\n") { it.text },
+          "left" to box.left,
+          "top" to box.top,
+          "right" to box.right,
+          "bottom" to box.bottom,
+        )
+      }
+    }
+
     /** "available" | "downloadable" | "downloading" | "unavailable" */
     AsyncFunction("modelStatus") Coroutine { ->
       when (model.checkStatus()) {

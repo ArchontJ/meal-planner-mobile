@@ -2,7 +2,7 @@
   "expo": {
     "name": "Meal Planner",
     "slug": "mealplanner",
-    "version": "1.2.0-proto.5",
+    "version": "1.2.0-proto.6",
     "scheme": "mealplanner",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -20,7 +20,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "versionCode": 8
+      "versionCode": 9
     },
     "plugins": [
       "expo-router",

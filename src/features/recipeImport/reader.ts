@@ -71,6 +71,12 @@ export function fractionInLine(line: string): number | null {
   return m ? num(m[1]) : null;
 }
 
+/** Any amount written in the line ("jajko - 1 sztuka", "4 duże jajka"); used when the model gives none. */
+export function amountInLine(line: string): number | null {
+  const m = /(?:^|[–-]\s*)(\d+(?:[.,]\d+)?)(?=\s*\p{L})/u.exec(line);
+  return m ? num(m[1]) : null;
+}
+
 /** "(60 g)", "(5 9)" (OCR reads g as 9), "(1,5 kg)" in the source line: the cookbook's own weight. */
 export function gramsInLine(line: string): number | null {
   const m = /\((\d+(?:[.,]\d+)?)\s*(kg|dag|g|9)\s*\)/i.exec(line);
@@ -135,7 +141,7 @@ PORCJE: liczba porcji (oszacuj, jeśli jej brak)
 POSIŁKI: pasujące z breakfast, second_breakfast, lunch, dessert, supper (po przecinku) albo brak
 TAGI: 0–3 krótkie tagi małymi literami albo brak
 SKŁADNIKI: numery linii ze składnikami, np. 4-15
-KROKI: numery linii z opisem przygotowania, np. 17-30
+KROKI: numery linii z opisem przygotowania (bez wstępu i anegdot), np. 17-30
 
 Tekst:
 ${numbered}`;
@@ -155,7 +161,7 @@ ${lines.join("\n")}`;
 }
 
 function stepsPrompt(text: string): string {
-  return `Przepisz poniższy opis przygotowania jako kolejne kroki po polsku (przetłumacz, jeśli trzeba). Każdy krok w osobnej linii zaczynającej się od "- ". Popraw błędy odczytu i literówki (np. "Mieszany" → "Mieszamy"), nic nie dodawaj.
+  return `Przepisz poniższy opis przygotowania jako kolejne kroki po polsku (przetłumacz, jeśli trzeba). Każdy krok w osobnej linii zaczynającej się od "- ". Popraw błędy odczytu i literówki (np. "Mieszany" → "Mieszamy"), nic nie dodawaj. Pomiń zdania, które nie są czynnościami (wstęp, anegdoty), oraz same składniki (np. "1 łyżka mąki").
 
 Opis:
 ${text}`;
@@ -232,7 +238,7 @@ export async function readRecipe(
       ingredients.push({
         name: clean(name)!,
         // The model sometimes drops the slash ("1/3" → "13"); a fraction in the line wins.
-        amount: fractionInLine(original) ?? num(amount),
+        amount: fractionInLine(original) ?? num(amount) ?? amountInLine(original),
         unit: clean(unit),
         grams: gramsInLine(original) ?? num(grams),
         original,

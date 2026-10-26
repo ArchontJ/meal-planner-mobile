@@ -5,7 +5,8 @@ import { Stack } from "expo-router";
 import { useState } from "react";
 import { Image, ScrollView, View } from "react-native";
 import { Button, IconButton, ProgressBar, Text } from "react-native-paper";
-import { downloadModel, generate, isRecipeReaderAvailable, modelStatus, modelStatusRaw, recognizeText } from "../../modules/recipe-reader";
+import { downloadModel, generate, isRecipeReaderAvailable, modelStatus, modelStatusRaw, recognizeBlocks, type TextBlock } from "../../modules/recipe-reader";
+import { pageText } from "@/features/recipeImport/layout";
 import { estimateTokens } from "@/features/recipeImport/prompt";
 import { readRecipe, type ReadRecipe, type ReaderCall } from "@/features/recipeImport/reader";
 import { useAppTheme } from "@/theme/theme";
@@ -71,9 +72,12 @@ export default function RecipeReaderTest() {
 
       const t0 = Date.now();
       const texts: string[] = [];
+      const pages: TextBlock[][] = [];
       for (let i = 0; i < photos.length; i++) {
         setStep(`Odczytuję tekst ze zdjęcia ${i + 1}/${photos.length}…`);
-        texts.push(await recognizeText(photos[i]!));
+        const blocks = await recognizeBlocks(photos[i]!);
+        pages.push(blocks);
+        texts.push(pageText(blocks));
       }
       const ocrText = texts.join("\n\n--- następna strona ---\n\n");
       const ocrMs = Date.now() - t0;
@@ -88,7 +92,7 @@ export default function RecipeReaderTest() {
       setRun(result);
       // Also to logcat (adb) so the results can be compared on the computer.
       // Logcat keeps at most ~4 KB per line: split the JSON into numbered parts.
-      const json = JSON.stringify({ photos: photos.length, ...result });
+      const json = JSON.stringify({ photos: photos.length, ...result, pages });
       const parts = Math.ceil(json.length / 3000);
       for (let i = 0; i < parts; i++) console.log(`[recipe-reader] ${i + 1}/${parts} ${json.slice(i * 3000, (i + 1) * 3000)}`);
     } catch (e) {

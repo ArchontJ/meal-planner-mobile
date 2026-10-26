@@ -3,9 +3,11 @@ import { requireOptionalNativeModule } from "expo";
 type EventSubscription = { remove(): void };
 
 export type ModelStatus = "available" | "downloadable" | "downloading" | "unavailable";
+export type TextBlock = { text: string; left: number; top: number; right: number; bottom: number };
 
 type Native = {
   recognizeText(uri: string): Promise<string>;
+  recognizeBlocks(uri: string): Promise<TextBlock[]>;
   modelStatus(): Promise<ModelStatus>;
   modelStatusRaw(): Promise<number>;
   downloadModel(): Promise<boolean>;
@@ -25,6 +27,9 @@ function get(): Native {
 
 /** On-device OCR (ML Kit, Latin script) of one photo. */
 export const recognizeText = (uri: string) => get().recognizeText(uri);
+
+/** OCR text blocks with their position in the photo (pixels). */
+export const recognizeBlocks = (uri: string) => get().recognizeBlocks(uri);
 
 /** Whether Gemini Nano can run on this phone, and whether it still has to be downloaded. */
 export const modelStatus = () => get().modelStatus();
