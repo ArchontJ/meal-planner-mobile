@@ -92,7 +92,8 @@ export function pickAmount(model: number | null, line: string): number | null {
 
 /** "(60 g)", "(5 9)" (OCR reads g as 9), "(1,5 kg)" in the source line: the cookbook's own weight. */
 export function gramsInLine(line: string): number | null {
-  const m = /\((\d+(?:[.,]\d+)?)\s*(kg|dag|g|9)\s*\)/i.exec(line);
+  // OCR also reads the "g" as "9", "q", "a" or "o": "(100 q)".
+  const m = /\((\d+(?:[.,]\d+)?)\s*(kg|dag|g|9|q|a|o)\s*\)/i.exec(line);
   if (!m) return null;
   const n = Number(m[1]!.replace(",", "."));
   const unit = m[2]!.toLowerCase();
@@ -356,8 +357,8 @@ export async function readRecipe(
     rows.forEach((row, i) => {
       const [rawName, amount, rawUnit, grams] = row.split("|").map((p) => p.trim());
       const name = clean(latin(rawName ?? ""));
-      // "nazwa" is the format's own header word, never a product.
-      if (!name || /^nazwa$/i.test(name) || isDietLabel(name)) return;
+      // "nazwa" is the format's header word and "przyprawy" a list label, never a product.
+      if (!name || /^(nazwa|przyprawy)$/i.test(name) || isDietLabel(name)) return;
       const original = sourceLine(name, batch, i);
       // "szczypta" or "garść" given as the amount is the unit of one.
       const wordAmount = amount && /^\p{L}+$/u.test(amount) ? amount : null;
