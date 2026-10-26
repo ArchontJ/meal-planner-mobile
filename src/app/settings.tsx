@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import { router } from "expo-router";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
@@ -83,6 +84,16 @@ export default function SettingsScreen() {
           right={() => (
             <Switch value={prefs.keepAwakeWhileCooking} onValueChange={(v) => prefs.setKeepAwakeWhileCooking(v)} />
           )}
+        />
+      </Section>
+
+      {/* PROTOTYPE (M9 step 3) – remove with the test screen. */}
+      <Section title="Prototyp">
+        <List.Item
+          title="Przepis ze zdjęcia (test)"
+          description="OCR + Gemini Nano na telefonie"
+          left={(props) => <List.Icon {...props} icon="text-recognition" />}
+          onPress={() => router.push("/recipe-reader-test")}
         />
       </Section>
 

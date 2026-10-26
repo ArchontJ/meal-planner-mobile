@@ -2,7 +2,7 @@
   "expo": {
     "name": "Meal Planner",
     "slug": "mealplanner",
-    "version": "1.1.1",
+    "version": "1.2.0-proto.1",
     "scheme": "mealplanner",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -20,7 +20,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "versionCode": 3
+      "versionCode": 4
     },
     "plugins": [
       "expo-router",
@@ -48,6 +48,22 @@
           "cameraPermission": "Aparat służy do skanowania kodów kreskowych produktów.",
           "recordAudioAndroid": false,
           "barcodeScannerEnabled": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": false,
+          "cameraPermission": "Aparat służy do robienia zdjęć przepisów i kodów kreskowych.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
         }
       ]
     ],

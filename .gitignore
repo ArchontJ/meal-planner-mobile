@@ -42,3 +42,7 @@ yarn-error.*
 
 # Release signing key and its passwords (back them up – the app cannot be updated without them)
 /credentials/
+
+# Build output of local native modules
+/modules/*/android/build/
+/modules/*/android/.cxx/

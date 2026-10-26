@@ -101,6 +101,7 @@ function RootStack({ theme }: { theme: AppTheme }) {
           <Stack.Screen name="shopping/new" />
           <Stack.Screen name="shopping/[id]" />
           <Stack.Screen name="scan" options={{ headerShown: false }} />
+          <Stack.Screen name="recipe-reader-test" />
         </Stack.Protected>
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="sign-in" options={{ headerShown: false }} />
