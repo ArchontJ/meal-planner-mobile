@@ -9,3 +9,9 @@ export function formatNumber(value: number, language: string, maxFractionDigits 
 export function formatGramsLabel(value: number, language: string): string {
   return `${formatNumber(value, language, 1)} g`;
 }
+
+/** "12,5" or "12.5" → 12.5; empty or not a number → NaN. */
+export function parseDecimal(text: string): number {
+  const v = text.trim().replace(",", ".");
+  return v === "" || !/^\d*\.?\d+$|^\d+\.$/.test(v) ? NaN : Number(v);
+}

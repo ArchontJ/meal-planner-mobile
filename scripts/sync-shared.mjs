@@ -22,6 +22,11 @@ export const SHARED_FILES = [
   "src/features/plan/model.ts",
   "src/features/recipes/filter.ts",
   "src/features/products/categoryOrder.ts",
+  // Recipe import rules (format, unit grams, product matching, building the recipe), used by "recipe from a photo".
+  "src/features/recipes/import/format.ts",
+  "src/features/recipes/import/units.ts",
+  "src/features/recipes/import/match.ts",
+  "src/features/recipes/import/build.ts",
   "src/types/database.ts",
   // EAN check and Open Food Facts mapping, shared with the import-off-product Edge Function.
   "supabase/functions/_shared/ean.ts",

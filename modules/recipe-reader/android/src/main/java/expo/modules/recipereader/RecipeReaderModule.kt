@@ -33,14 +33,6 @@ class RecipeReaderModule : Module() {
     Name("RecipeReader")
     Events("onDownloadProgress")
 
-    /** Text of one photo (content:// or file:// URI); blocks separated by a blank line. */
-    AsyncFunction("recognizeText") Coroutine { uri: String ->
-      val context = appContext.reactContext ?: throw CodedException("ERR_NO_CONTEXT", "No Android context", null)
-      val image = InputImage.fromFilePath(context, Uri.parse(uri))
-      val result = recognizer.process(image).await()
-      result.textBlocks.joinToString("\n\n") { block -> block.lines.joinToString("\n") { it.text } }
-    }
-
     /** Text blocks with their position, so JS can put multi-column pages in reading order. */
     AsyncFunction("recognizeBlocks") Coroutine { uri: String ->
       val context = appContext.reactContext ?: throw CodedException("ERR_NO_CONTEXT", "No Android context", null)
@@ -66,11 +58,6 @@ class RecipeReaderModule : Module() {
         FeatureStatus.DOWNLOADING -> "downloading"
         else -> "unavailable"
       }
-    }
-
-    /** Raw FeatureStatus value from AICore, for diagnostics. */
-    AsyncFunction("modelStatusRaw") Coroutine { ->
-      model.checkStatus()
     }
 
     /**

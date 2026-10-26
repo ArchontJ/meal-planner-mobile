@@ -6,10 +6,8 @@ export type ModelStatus = "available" | "downloadable" | "downloading" | "unavai
 export type TextBlock = { text: string; left: number; top: number; right: number; bottom: number };
 
 type Native = {
-  recognizeText(uri: string): Promise<string>;
   recognizeBlocks(uri: string): Promise<TextBlock[]>;
   modelStatus(): Promise<ModelStatus>;
-  modelStatusRaw(): Promise<number>;
   downloadModel(): Promise<boolean>;
   generate(prompt: string, temperature: number, maxOutputTokens: number): Promise<string>;
   addListener(event: "onDownloadProgress", listener: (e: { bytes: number; status: string }) => void): EventSubscription;
@@ -25,17 +23,11 @@ function get(): Native {
   return native;
 }
 
-/** On-device OCR (ML Kit, Latin script) of one photo. */
-export const recognizeText = (uri: string) => get().recognizeText(uri);
-
 /** OCR text blocks with their position in the photo (pixels). */
 export const recognizeBlocks = (uri: string) => get().recognizeBlocks(uri);
 
 /** Whether Gemini Nano can run on this phone, and whether it still has to be downloaded. */
 export const modelStatus = () => get().modelStatus();
-
-/** Raw AICore FeatureStatus number (diagnostics). */
-export const modelStatusRaw = () => get().modelStatusRaw();
 
 /** onProgress gets bytes (-1 for non-progress events) and AICore's status text. */
 export function downloadModel(onProgress?: (bytes: number, status: string) => void): Promise<boolean> {

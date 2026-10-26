@@ -110,7 +110,7 @@ export default function RecipesScreen() {
             icon="camera-plus-outline"
             mode="contained-tonal"
             accessibilityLabel={t("mobile.recipes.fromPhoto")}
-            onPress={() => router.push("/recipe-reader-test")}
+            onPress={() => router.push("/recipe-photo")}
           />
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>

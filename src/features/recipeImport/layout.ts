@@ -48,3 +48,6 @@ export function pageText(blocks: Block[]): string {
     .map((b) => b.text.split("\n").map(fixOcrLine).join("\n"))
     .join("\n\n");
 }
+
+/** OCR reads "ł" as "t" ("masto"); product search and matching try both spellings. */
+export const spellings = (term: string) => [...new Set([term, term.replace(/t/g, "ł")])];
