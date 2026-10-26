@@ -54,4 +54,6 @@ Repository: https://github.com/ArchontJ/meal-planner-mobile (branch `master`; ta
 
 Package name `com.archont.mealplanner`. Build and run on a device: `npm run android`.
 
+**Recipe from a photo (v1.2.0):** local Expo module `modules/recipe-reader` (Kotlin: ML Kit text recognition + ML Kit GenAI Prompt API = Gemini Nano via AICore). Prompt API is pinned to `1.0.0-beta2`: newer betas need Kotlin 2.3+, but Expo SDK 57 is locked to Kotlin 2.1.20; beta2 caps one answer at 256 tokens, so `src/features/recipeImport/reader.ts` asks several short questions. `layout.ts` orders OCR blocks (XY-cut) and fixes common Polish misreads; the review follows the desktop import rules (`src/features/recipes/import/*`, synced). Photos are never stored.
+
 **Release (v1.0.0 shipped 2026-10-04):** local Gradle build signed with `credentials/mealplanner-release.jks` via `plugins/withReleaseSigning.js` (credentials are git-ignored and backed up by the user). Bump `version` + `android.versionCode` in `app.json`, stop the bundler, `npm run build:apk`, install the APK with `adb install -r`, tag `v1.x.y`. Dev build and release share the app ID but not the key – switching requires an uninstall that deletes phone-only data (ask the user first). Windows build needs JDK 17 (`JAVA_HOME`), CMake 3.31.6 (`plugins/withLongPathCmake.js`) and LongPathsEnabled.
