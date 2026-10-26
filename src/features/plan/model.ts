@@ -25,6 +25,8 @@ export type MealRow = {
       archived_at: string | null;
       instructions: string | null;
       serve_with: string | null;
+      source?: string | null;
+      pending_ingredients?: unknown;
       recipe_ingredients: { grams: number; position: number; product: ProductNutrition & { name: string } }[];
     } | null;
   }[];
@@ -54,8 +56,25 @@ export type PlanItem =
       ingredients: { name: string; grams: number }[];
       instructions: string | null;
       serveWith: string | null;
+      source: string | null;
+      /** Lines skipped when importing ("Do uzupełnienia"): not in the macros. Grams × portions. */
+      pending: PendingIngredient[];
       macros: Macros;
     };
+
+/** An imported ingredient line without a product yet (recipes.pending_ingredients). Grams per portion. */
+export type PendingIngredient = { original: string; name: string; grams: number | null };
+
+/** Reads recipes.pending_ingredients (jsonb), skipping anything malformed. */
+export function parsePending(value: unknown): PendingIngredient[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((x): PendingIngredient[] => {
+    if (typeof x !== "object" || x === null) return [];
+    const { original, name, grams } = x as Record<string, unknown>;
+    if (typeof original !== "string") return [];
+    return [{ original, name: typeof name === "string" ? name : original, grams: typeof grams === "number" ? grams : null }];
+  });
+}
 
 export type PlanMeal = { id: string; date: string; slotId: string; items: PlanItem[]; macros: Macros };
 
@@ -92,6 +111,11 @@ export function toPlanMeal(row: MealRow): PlanMeal {
             ingredients: ingredients.map((ing) => ({ name: ing.product.name, grams: ing.grams * i.portions! })),
             instructions: i.recipe.instructions,
             serveWith: i.recipe.serve_with,
+            source: i.recipe.source ?? null,
+            pending: parsePending(i.recipe.pending_ingredients).map((p) => ({
+              ...p,
+              grams: p.grams === null ? null : p.grams * i.portions!,
+            })),
             macros: scaleMacros(recipePortionMacros({ ingredients }), i.portions),
           },
         ];

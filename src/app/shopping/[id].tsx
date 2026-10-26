@@ -15,6 +15,7 @@ import {
 } from "@/features/shopping/aggregate";
 import { useCategoryInfo, useShoppingSource } from "@/features/shopping/api";
 import { fingerprint, rangeLabel, useMyLists } from "@/features/shopping/helpers";
+import { PendingWarning } from "@/features/shopping/PendingWarning";
 import { useShoppingStore } from "@/features/shopping/store";
 import { useAuth } from "@/lib/auth";
 import { useAppTheme } from "@/theme/theme";
@@ -130,6 +131,7 @@ export default function ShoppingListScreen() {
       <ProgressBar progress={progress} color={theme.colors.primary} style={{ marginHorizontal: 16, borderRadius: 2 }} />
 
       <ScrollView contentContainerStyle={{ padding: 16, gap: 4, paddingBottom: 32 }}>
+        <PendingWarning meals={source.data ?? []} excluded={new Set(list.excludedMealIds)} />
         {outdated && (
           <View
             style={{

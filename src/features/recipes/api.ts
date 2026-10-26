@@ -1,5 +1,6 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
+import { parsePending, type PendingIngredient } from "@/features/plan/model";
 import { productMacros, sumMacros, type Macros } from "@/lib/nutrition";
 import { supabase } from "@/lib/supabase";
 import type { Tables } from "@/types/database";
@@ -13,6 +14,8 @@ export type RecipeListItem = {
   slotIds: string[];
   macros: Macros;
   updated_at: string;
+  /** Lines waiting for a product ("Do uzupełnienia"). */
+  pendingCount: number;
 };
 
 export type RecipeDetail = {
@@ -23,6 +26,9 @@ export type RecipeDetail = {
   tags: string[];
   slotIds: string[];
   ingredients: { name: string; grams: number; archived: boolean }[];
+  /** Imported lines without a product yet; grams per portion, not in the macros. */
+  pending: PendingIngredient[];
+  source: string | null;
   /** Per 1 portion. */
   macros: Macros;
 };
@@ -65,7 +71,7 @@ export const myRecipesOptions = (userId: string | undefined) =>
       const [recipes, macros] = await Promise.all([
         supabase
           .from("recipes")
-          .select("id, name, tags, updated_at, recipe_meal_slots(slot_id)")
+          .select("id, name, tags, updated_at, pending_ingredients, recipe_meal_slots(slot_id)")
           .is("archived_at", null)
           .order("name"),
         supabase.from("recipe_macros").select("*"),
@@ -82,13 +88,14 @@ export const myRecipesOptions = (userId: string | undefined) =>
           tags: r.tags,
           updated_at: r.updated_at,
           slotIds: r.recipe_meal_slots.map((l) => l.slot_id),
+          pendingCount: parsePending(r.pending_ingredients).length,
           macros: { kcal: m?.kcal ?? 0, protein: m?.protein ?? 0, fat: m?.fat ?? 0, carbs: m?.carbs ?? 0 },
         };
       });
     },
   });
 
-const RECIPE_DETAIL_SELECT = `id, name, instructions, serve_with, tags, recipe_meal_slots(slot_id),
+const RECIPE_DETAIL_SELECT = `id, name, instructions, serve_with, tags, source, pending_ingredients, recipe_meal_slots(slot_id),
   recipe_ingredients(grams, position, product:products(name, kcal, protein, fat, carbs, archived_at))`;
 
 type RecipeDetailRow = {
@@ -97,6 +104,8 @@ type RecipeDetailRow = {
   instructions: string | null;
   serve_with: string | null;
   tags: string[];
+  source: string | null;
+  pending_ingredients: unknown;
   recipe_meal_slots: { slot_id: string }[];
   recipe_ingredients: {
     grams: number;
@@ -114,6 +123,8 @@ function toRecipeDetail(data: RecipeDetailRow): RecipeDetail {
     serve_with: data.serve_with,
     tags: data.tags,
     slotIds: data.recipe_meal_slots.map((l) => l.slot_id),
+    pending: parsePending(data.pending_ingredients),
+    source: data.source,
     ingredients: ingredients.map((i) => ({ name: i.product.name, grams: i.grams, archived: i.product.archived_at !== null })),
     macros: sumMacros(ingredients.map((i) => productMacros(i.product, i.grams))),
   };

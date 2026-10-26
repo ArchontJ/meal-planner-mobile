@@ -2,7 +2,8 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { Avatar, Button, Text } from "react-native-paper";
 import { MarkdownText } from "@/components/MarkdownText";
-import { IngredientRow, MacroSummary } from "@/features/cooking/CookingView";
+import { IngredientRow, MacroSummary, PendingLines } from "@/features/cooking/CookingView";
+import type { PendingIngredient } from "@/features/plan/model";
 import { formatGramsLabel } from "@/lib/format";
 import type { Macros } from "@/lib/nutrition";
 import { useAppTheme } from "@/theme/theme";
@@ -20,6 +21,8 @@ export function RecipePreview({
   macros,
   ingredients,
   ingredientsLoading,
+  pending = [],
+  source,
   serveWith,
   instructions,
   author,
@@ -32,6 +35,9 @@ export function RecipePreview({
   macros: Macros;
   ingredients: PreviewIngredient[];
   ingredientsLoading?: boolean;
+  /** "Do uzupełnienia" lines (grams per portion). */
+  pending?: PendingIngredient[];
+  source?: string | null;
   serveWith: string | null;
   instructions: string | null;
   author?: { name: string | null; avatarUrl: string | null };
@@ -78,6 +84,13 @@ export function RecipePreview({
               ))}
             </Labeled>
           )}
+          {source ? (
+            <Labeled label={t("mobile.recipes.source")}>
+              <Text variant="bodyMedium" style={{ flex: 1, color: theme.colors.onSurfaceVariant }}>
+                {source}
+              </Text>
+            </Labeled>
+          ) : null}
           {tags.length > 0 && (
             <Labeled label={t("recipes.tags")}>
               {tags.map((tag) => (
@@ -100,6 +113,7 @@ export function RecipePreview({
           {ingredients.map((ing) => (
             <IngredientRow key={ing.key} name={ing.name} amount={formatGramsLabel(ing.grams, i18n.language)} badge={ing.badge} />
           ))}
+          <PendingLines pending={pending} portions={1} />
           {serveWith ? (
             <View style={{ backgroundColor: theme.colors.surfaceContainerLow, borderRadius: 12, padding: 12, marginTop: 10 }}>
               <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant }}>

@@ -48,7 +48,8 @@
       "saved": "Saved",
       "count_one": "{{count}} recipe",
       "count_other": "{{count}} recipes",
-      "cook": "Cook"
+      "cook": "Cook",
+      "source": "Source"
     },
     "shopping": {
       "next3": "Next 3 days",
@@ -64,7 +65,9 @@
       "refreshShort": "Refresh",
       "emptyTitle": "No shopping lists",
       "emptyBody": "Create a list from planned meals – amounts add up the same way as on the desktop.",
-      "localNote": "Lists are saved only on this phone."
+      "localNote": "Lists are saved only on this phone.",
+      "pendingWarning_one": "Recipe {{names}} has ingredients to complete – they are not on the list.",
+      "pendingWarning_other": "Recipes {{names}} have ingredients to complete – they are not on the list."
     },
     "offline": "Offline – showing saved data. It refreshes when the connection is back.",
     "scan": {

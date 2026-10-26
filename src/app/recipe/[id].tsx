@@ -48,6 +48,8 @@ export default function RecipeScreen() {
           grams: ing.grams,
           badge: ing.archived ? t("recipes.archivedProduct") : undefined,
         }))}
+        pending={r.pending}
+        source={r.source}
         serveWith={r.serve_with}
         instructions={r.instructions}
         onCook={() => router.push({ pathname: "/cook/[id]", params: { id: r.id, source: "own" } })}

@@ -413,8 +413,10 @@ export type Database = {
           instructions: string | null
           is_shared: boolean
           name: string
+          pending_ingredients: Json
           serve_with: string | null
           shared_at: string | null
+          source: string | null
           tags: string[]
           updated_at: string
           user_id: string
@@ -427,8 +429,10 @@ export type Database = {
           instructions?: string | null
           is_shared?: boolean
           name: string
+          pending_ingredients?: Json
           serve_with?: string | null
           shared_at?: string | null
+          source?: string | null
           tags?: string[]
           updated_at?: string
           user_id?: string
@@ -441,8 +445,10 @@ export type Database = {
           instructions?: string | null
           is_shared?: boolean
           name?: string
+          pending_ingredients?: Json
           serve_with?: string | null
           shared_at?: string | null
+          source?: string | null
           tags?: string[]
           updated_at?: string
           user_id?: string
@@ -650,6 +656,7 @@ export type Database = {
           serve_with: string | null
           shared_at: string | null
           slot_keys: string[] | null
+          source: string | null
           tags: string[] | null
         }
         Relationships: []
@@ -696,8 +703,10 @@ export type Database = {
           p_instructions: string
           p_is_shared: boolean
           p_name: string
+          p_pending_ingredients: Json
           p_serve_with: string
           p_slot_ids: string[]
+          p_source: string
           p_tags: string[]
         }
         Returns: string

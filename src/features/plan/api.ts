@@ -11,7 +11,7 @@ const MEAL_SELECT = `
     id, position, grams, portions,
     product:products(id, name, producer, kcal, protein, fat, carbs, archived_at),
     recipe:recipes(
-      id, name, archived_at, instructions, serve_with,
+      id, name, archived_at, instructions, serve_with, source, pending_ingredients,
       recipe_ingredients(grams, position, product:products(name, kcal, protein, fat, carbs))
     )
   )`;

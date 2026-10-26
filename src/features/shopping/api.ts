@@ -1,6 +1,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { parsePending } from "@/features/plan/model";
 import { orderCategories } from "@/features/products/categoryOrder";
 import { useProfile } from "@/features/profile/api";
 import type { CategoryInfo, SourceMeal } from "@/features/shopping/aggregate";
@@ -22,6 +23,7 @@ type Row = {
     product: { id: string; name: string; producer: string | null; category_id: string } | null;
     recipe: {
       name: string;
+      pending_ingredients: unknown;
       recipe_ingredients: {
         grams: number;
         product: { id: string; name: string; producer: string | null; category_id: string };
@@ -30,7 +32,8 @@ type Row = {
   }[];
 };
 
-export type ShoppingSourceMeal = SourceMeal & { itemNames: string[] };
+/** itemNames for the meal picker; pendingRecipes = recipes with "Do uzupełnienia" lines (missing from the list). */
+export type ShoppingSourceMeal = SourceMeal & { itemNames: string[]; pendingRecipes: string[] };
 
 /** Meals in [from, to] with the product data needed for a shopping list. */
 export function useShoppingSource(from: ISODate, to: ISODate, enabled = true) {
@@ -46,7 +49,7 @@ export function useShoppingSource(from: ISODate, to: ISODate, enabled = true) {
            meal_items(
              position, grams, portions,
              product:products(id, name, producer, category_id),
-             recipe:recipes(name, recipe_ingredients(grams, product:products(id, name, producer, category_id)))
+             recipe:recipes(name, pending_ingredients, recipe_ingredients(grams, product:products(id, name, producer, category_id)))
            )`,
         )
         .gte("date", from)
@@ -62,6 +65,9 @@ export function useShoppingSource(from: ISODate, to: ISODate, enabled = true) {
             date: m.date,
             slotId: m.slot_id,
             itemNames: items.map((i) => i.product?.name ?? i.recipe?.name ?? "?"),
+            pendingRecipes: items.flatMap((i) =>
+              i.recipe && parsePending(i.recipe.pending_ingredients).length > 0 ? [i.recipe.name] : [],
+            ),
             items: items.map((i) => ({
               grams: i.grams,
               portions: i.portions,

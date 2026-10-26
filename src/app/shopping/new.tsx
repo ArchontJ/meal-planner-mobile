@@ -10,6 +10,7 @@ import { useProfile } from "@/features/profile/api";
 import { aggregateShopping, refreshItems } from "@/features/shopping/aggregate";
 import { useCategoryInfo, useShoppingSource, type ShoppingSourceMeal } from "@/features/shopping/api";
 import { useMyLists } from "@/features/shopping/helpers";
+import { PendingWarning } from "@/features/shopping/PendingWarning";
 import { newListId, useShoppingStore, type ShoppingList } from "@/features/shopping/store";
 import { useAuth } from "@/lib/auth";
 import { addDays, formatDate, startOfWeek, today, type ISODate } from "@/lib/dates";
@@ -122,6 +123,7 @@ export default function NewShoppingListScreen() {
           </View>
         </View>
         {!rangeValid && <Text style={{ color: theme.colors.error }}>{t("shopping.rangeInvalid", { max: MAX_DAYS })}</Text>}
+        <PendingWarning meals={meals} excluded={excluded} />
 
         {isLoading ? (
           <ActivityIndicator style={{ marginTop: 16 }} />

@@ -50,7 +50,8 @@
       "count_few": "{{count}} przepisy",
       "count_many": "{{count}} przepisów",
       "count_other": "{{count}} przepisu",
-      "cook": "Gotuj"
+      "cook": "Gotuj",
+      "source": "Źródło"
     },
     "shopping": {
       "next3": "Najbliższe 3 dni",
@@ -68,7 +69,11 @@
       "refreshShort": "Odśwież",
       "emptyTitle": "Brak list zakupów",
       "emptyBody": "Utwórz listę z zaplanowanych posiłków – ilości zsumują się tak jak na komputerze.",
-      "localNote": "Listy są zapisane tylko na tym telefonie."
+      "localNote": "Listy są zapisane tylko na tym telefonie.",
+      "pendingWarning_one": "Przepis {{names}} ma składniki do uzupełnienia – nie ma ich na liście.",
+      "pendingWarning_few": "Przepisy {{names}} mają składniki do uzupełnienia – nie ma ich na liście.",
+      "pendingWarning_many": "Przepisy {{names}} mają składniki do uzupełnienia – nie ma ich na liście.",
+      "pendingWarning_other": "Przepisy {{names}} mają składniki do uzupełnienia – nie ma ich na liście."
     },
     "offline": "Brak połączenia – pokazuję zapisane dane. Odświeżą się po odzyskaniu połączenia.",
     "scan": {

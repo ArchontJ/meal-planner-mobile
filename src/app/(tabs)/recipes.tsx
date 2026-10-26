@@ -155,6 +155,7 @@ export default function RecipesScreen() {
                 name={item.recipe.name}
                 macros={item.recipe.macros}
                 tags={item.recipe.tags}
+                pendingCount={item.recipe.pendingCount}
                 onPress={() => router.push({ pathname: "/recipe/[id]", params: { id: item.recipe.id } })}
               />
             ) : (

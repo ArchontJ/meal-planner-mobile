@@ -24,6 +24,7 @@ function CookOwn({ id }: { id: string }) {
           name: r.name,
           portions: 1,
           ingredientsPerPortion: r.ingredients,
+          pendingPerPortion: r.pending,
           macrosPerPortion: r.macros,
           serveWith: r.serve_with,
           instructions: r.instructions,

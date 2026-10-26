@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, View } from "react-native";
 import { IconButton, SegmentedButtons, Text } from "react-native-paper";
 import { MarkdownText } from "@/components/MarkdownText";
+import type { PendingIngredient } from "@/features/plan/model";
 import { formatGramsLabel, formatNumber } from "@/lib/format";
 import { formatKcal, scaleMacros, sumMacros, type Macros } from "@/lib/nutrition";
 import { usePreferences } from "@/lib/preferences";
@@ -15,6 +16,8 @@ export type CookRecipe = {
   /** Portions to start with: the planned amount, or 1 for a recipe opened from the list. */
   portions: number;
   ingredientsPerPortion: { name: string; grams: number }[];
+  /** Imported lines without a product yet ("Do uzupełnienia"): listed, but not in the macros. */
+  pendingPerPortion?: PendingIngredient[];
   macrosPerPortion: Macros;
   serveWith: string | null;
   instructions: string | null;
@@ -88,6 +91,7 @@ export function CookingView({
                   {r.ingredientsPerPortion.map((ing, i) => (
                     <IngredientRow key={i} name={ing.name} amount={formatGramsLabel(ing.grams * n, lang)} />
                   ))}
+                  <PendingLines pending={r.pendingPerPortion ?? []} portions={n} />
                   {r.serveWith ? (
                     <View style={{ backgroundColor: theme.colors.surfaceContainerLow, borderRadius: 12, padding: 12, marginTop: 6 }}>
                       <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant }}>
@@ -180,6 +184,31 @@ export function IngredientRow({ name, amount, badge }: { name: string; amount: s
       </Text>
       <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant, fontVariant: ["tabular-nums"] }}>
         {amount}
+      </Text>
+    </View>
+  );
+}
+
+/**
+ * "Do uzupełnienia": imported ingredient lines without a product yet, with a note that the
+ * macros leave them out (as on the desktop). Grams per portion × portions, "—" when unknown.
+ */
+export function PendingLines({ pending, portions }: { pending: PendingIngredient[]; portions: number }) {
+  const { t, i18n } = useTranslation();
+  const theme = useAppTheme();
+  if (pending.length === 0) return null;
+  return (
+    <View style={{ gap: 2 }}>
+      {pending.map((p, i) => (
+        <IngredientRow
+          key={`pending-${i}`}
+          name={p.name}
+          amount={p.grams === null ? "—" : formatGramsLabel(p.grams * portions, i18n.language)}
+          badge={t("recipes.pending.badge")}
+        />
+      ))}
+      <Text variant="labelMedium" style={{ color: theme.colors.statusWarn, marginTop: 4 }}>
+        {t("recipes.pending.macrosWarning", { count: pending.length })}
       </Text>
     </View>
   );

@@ -49,6 +49,8 @@ export default function MealScreen() {
         portions: item.portions,
         // The plan stores ingredients already multiplied by the portions.
         ingredientsPerPortion: item.ingredients.map((ing) => ({ name: ing.name, grams: ing.grams / item.portions })),
+        // Pending lines from the plan are already × portions; the view wants per portion.
+        pendingPerPortion: item.pending.map((p) => ({ ...p, grams: p.grams === null ? null : p.grams / item.portions })),
         macrosPerPortion: scaleMacros(item.macros, 1 / item.portions),
         serveWith: item.serveWith,
         instructions: item.instructions,

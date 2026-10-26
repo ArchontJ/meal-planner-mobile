@@ -11,6 +11,7 @@ export function RecipeCard({
   macros,
   tags,
   author,
+  pendingCount = 0,
   saved,
   onToggleSaved,
   onPress,
@@ -19,6 +20,8 @@ export function RecipeCard({
   macros: Macros;
   tags: string[];
   author?: { name: string | null; avatarUrl: string | null };
+  /** "Do uzupełnienia" lines; shown as a badge. */
+  pendingCount?: number;
   saved?: boolean;
   onToggleSaved?: () => void;
   onPress: () => void;
@@ -55,6 +58,21 @@ export function RecipeCard({
           {formatKcal(macros.kcal)} kcal · {t("macros.proteinShort")} {g(macros.protein)} · {t("macros.fatShort")}{" "}
           {g(macros.fat)} · {t("macros.carbsShort")} {g(macros.carbs)}
         </Text>
+        {pendingCount > 0 && (
+          <View
+            style={{
+              alignSelf: "flex-start",
+              backgroundColor: theme.colors.tertiaryContainer,
+              borderRadius: 6,
+              paddingHorizontal: 6,
+              marginTop: 2,
+            }}
+          >
+            <Text variant="labelSmall" style={{ color: theme.colors.onTertiaryContainer }}>
+              {t("recipes.pending.badgeCount", { count: pendingCount })}
+            </Text>
+          </View>
+        )}
         {(tags.length > 0 || author) && (
           <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6, marginTop: 4 }}>
             {author && (
