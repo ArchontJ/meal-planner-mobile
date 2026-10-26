@@ -51,15 +51,21 @@ class RecipeReaderModule : Module() {
       }
     }
 
-    /** Downloads Gemini Nano through AICore; progress as onDownloadProgress { bytes }. */
+    /** Raw FeatureStatus value from AICore, for diagnostics. */
+    AsyncFunction("modelStatusRaw") Coroutine { ->
+      model.checkStatus()
+    }
+
+    /**
+     * Downloads Gemini Nano through AICore. Every status AICore reports is sent as
+     * onDownloadProgress { bytes, status } (status = the event's text, for diagnostics).
+     */
     AsyncFunction("downloadModel") Coroutine { ->
       model.download().collect { status ->
-        when (status) {
-          is DownloadStatus.DownloadProgress ->
-            sendEvent("onDownloadProgress", bundleOf("bytes" to status.totalBytesDownloaded.toDouble()))
-          is DownloadStatus.DownloadFailed ->
-            throw CodedException("ERR_DOWNLOAD", status.e.message ?: "Model download failed", status.e)
-          else -> Unit
+        val bytes = if (status is DownloadStatus.DownloadProgress) status.totalBytesDownloaded.toDouble() else -1.0
+        sendEvent("onDownloadProgress", bundleOf("bytes" to bytes, "status" to status.toString()))
+        if (status is DownloadStatus.DownloadFailed) {
+          throw CodedException("ERR_DOWNLOAD", status.e.message ?: "Model download failed", status.e)
         }
       }
       true

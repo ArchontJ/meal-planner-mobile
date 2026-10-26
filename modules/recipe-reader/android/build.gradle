@@ -18,6 +18,7 @@ dependencies {
   // On-device text recognition (Latin script), bundled in the app so it works offline at once.
   implementation 'com.google.mlkit:text-recognition:16.0.1'
   // Gemini Nano through Android AICore (ML Kit GenAI Prompt API).
-  // beta3+ is built with Kotlin 2.3; Expo SDK 57 compiles with Kotlin 2.1, so stay on beta2 for now.
+  // beta3+ is built with Kotlin 2.3, but Expo SDK 57 is locked to Kotlin 2.1.20 (its pika compiler
+  // plugin exists only for that version). beta2 caps one answer at 256 tokens.
   implementation 'com.google.mlkit:genai-prompt:1.0.0-beta2'
 }

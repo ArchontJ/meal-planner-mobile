@@ -5,27 +5,17 @@ import { Stack } from "expo-router";
 import { useState } from "react";
 import { Image, ScrollView, View } from "react-native";
 import { Button, IconButton, ProgressBar, Text } from "react-native-paper";
-import { downloadModel, generate, isRecipeReaderAvailable, modelStatus, recognizeText } from "../../modules/recipe-reader";
-import { estimateTokens, extractJson, recipePrompt } from "@/features/recipeImport/prompt";
+import { downloadModel, generate, isRecipeReaderAvailable, modelStatus, modelStatusRaw, recognizeText } from "../../modules/recipe-reader";
+import { estimateTokens } from "@/features/recipeImport/prompt";
+import { readRecipe, type ReadRecipe, type ReaderCall } from "@/features/recipeImport/reader";
 import { useAppTheme } from "@/theme/theme";
-
-type Parsed = {
-  name?: string;
-  servings?: number;
-  source?: string | null;
-  meals?: string[];
-  tags?: string[];
-  ingredients?: { name?: string; amount?: number | null; unit?: string | null; grams?: number | null; original?: string }[];
-  instructions?: string[];
-};
 
 type Run = {
   ocrMs: number;
   llmMs: number;
   ocrText: string;
-  output: string;
-  parsed: Parsed | null;
-  parseError: string | null;
+  calls: ReaderCall[];
+  recipe: ReadRecipe;
 };
 
 export default function RecipeReaderTest() {
@@ -35,6 +25,12 @@ export default function RecipeReaderTest() {
   const [download, setDownload] = useState<number | null>(null);
   const [run, setRun] = useState<Run | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [diag, setDiag] = useState<string[]>([]);
+  const log = (line: string) => {
+    const stamped = `${new Date().toLocaleTimeString()} ${line}`;
+    console.log("[recipe-reader-diag]", stamped);
+    setDiag((d) => [...d.slice(-30), stamped]);
+  };
   const [showOcr, setShowOcr] = useState(false);
   const [showRaw, setShowRaw] = useState(false);
 
@@ -55,13 +51,20 @@ export default function RecipeReaderTest() {
     try {
       setStep("Sprawdzam model…");
       let status = await modelStatus();
+      log(`status: ${status} (raw ${await modelStatusRaw()})`);
       if (status === "unavailable") throw new Error("Gemini Nano jest niedostępny na tym telefonie.");
       if (status !== "available") {
         setStep("Pobieranie modelu…");
         setDownload(0);
-        await downloadModel((bytes) => setDownload(bytes));
+        log("download() start");
+        await downloadModel((bytes, s) => {
+          if (bytes >= 0) setDownload(bytes);
+          log(`download event: ${s}`);
+        });
+        log("download() finished");
         setDownload(null);
         status = await modelStatus();
+        log(`status after download: ${status}`);
       }
 
       const t0 = Date.now();
@@ -73,31 +76,26 @@ export default function RecipeReaderTest() {
       const ocrText = texts.join("\n\n--- następna strona ---\n\n");
       const ocrMs = Date.now() - t0;
 
-      setStep("Gemini Nano układa przepis…");
+      setStep("Gemini Nano: przegląd przepisu…");
       const t1 = Date.now();
-      const output = await generate(recipePrompt(ocrText), { temperature: 0.1, maxOutputTokens: 3000 });
+      const { recipe, calls } = await readRecipe(ocrText, generate, (done, total) =>
+        setStep(`Gemini Nano: zapytanie ${Math.min(done + 1, total)}/${total}…`),
+      );
       const llmMs = Date.now() - t1;
-
-      let parsed: Parsed | null = null;
-      let parseError: string | null = null;
-      try {
-        parsed = JSON.parse(extractJson(output)) as Parsed;
-      } catch (e) {
-        parseError = e instanceof Error ? e.message : String(e);
-      }
-      const result = { ocrMs, llmMs, ocrText, output, parsed, parseError };
+      const result = { ocrMs, llmMs, ocrText, calls, recipe };
       setRun(result);
       // Also to logcat (adb) so the results can be compared on the computer.
       console.log("[recipe-reader]", JSON.stringify({ photos: photos.length, ...result }));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
+      log(`error: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setStep(null);
       setDownload(null);
     }
   };
 
-  const p = run?.parsed;
+  const p = run?.recipe;
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 48 }}>
       <Stack.Screen options={{ title: "Prototyp: przepis ze zdjęcia" }} />
@@ -144,6 +142,16 @@ export default function RecipeReaderTest() {
         </>
       )}
       {error && <Text style={{ color: theme.colors.error }}>{error}</Text>}
+      {diag.length > 0 && (
+        <View style={{ backgroundColor: theme.colors.surfaceContainerLow, borderRadius: 8, padding: 8 }}>
+          <Text variant="labelMedium">Diagnostyka modelu</Text>
+          {diag.map((line, i) => (
+            <Text key={i} selectable variant="labelSmall" style={{ fontFamily: "monospace" }}>
+              {line}
+            </Text>
+          ))}
+        </View>
+      )}
 
       {run && (
         <View style={{ gap: 10 }}>
@@ -152,12 +160,10 @@ export default function RecipeReaderTest() {
             {((run.ocrMs + run.llmMs) / 1000).toFixed(1)} s
           </Text>
           <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-            Tekst OCR: {run.ocrText.length} znaków, ok. {estimateTokens(recipePrompt(run.ocrText))} tokenów wejścia (limit ~4000)
+            Tekst OCR: {run.ocrText.length} znaków, ok. {estimateTokens(run.ocrText)} tokenów · zapytań do modelu: {run.calls.length}
           </Text>
 
-          {run.parseError ? (
-            <Text style={{ color: theme.colors.error }}>JSON niepoprawny: {run.parseError}</Text>
-          ) : (
+          {(
             <View style={{ gap: 6, backgroundColor: theme.colors.surfaceContainerLow, borderRadius: 12, padding: 12 }}>
               <Text variant="titleLarge">{p?.name ?? "(brak nazwy)"}</Text>
               <Text variant="bodyMedium">
@@ -196,13 +202,19 @@ export default function RecipeReaderTest() {
             </Text>
           )}
           <Button mode="text" onPress={() => setShowRaw((v) => !v)}>
-            {showRaw ? "Ukryj" : "Pokaż"} surową odpowiedź modelu
+            {showRaw ? "Ukryj" : "Pokaż"} odpowiedzi modelu ({run.calls.length})
           </Button>
-          {showRaw && (
-            <Text selectable variant="bodySmall" style={{ fontFamily: "monospace" }}>
-              {run.output}
-            </Text>
-          )}
+          {showRaw &&
+            run.calls.map((c, i) => (
+              <View key={i} style={{ gap: 2 }}>
+                <Text variant="labelMedium">
+                  {i + 1}. {c.kind} · {(c.ms / 1000).toFixed(1)} s
+                </Text>
+                <Text selectable variant="bodySmall" style={{ fontFamily: "monospace" }}>
+                  {c.output}
+                </Text>
+              </View>
+            ))}
         </View>
       )}
     </ScrollView>

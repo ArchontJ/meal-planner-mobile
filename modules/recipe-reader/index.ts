@@ -7,9 +7,10 @@ export type ModelStatus = "available" | "downloadable" | "downloading" | "unavai
 type Native = {
   recognizeText(uri: string): Promise<string>;
   modelStatus(): Promise<ModelStatus>;
+  modelStatusRaw(): Promise<number>;
   downloadModel(): Promise<boolean>;
   generate(prompt: string, temperature: number, maxOutputTokens: number): Promise<string>;
-  addListener(event: "onDownloadProgress", listener: (e: { bytes: number }) => void): EventSubscription;
+  addListener(event: "onDownloadProgress", listener: (e: { bytes: number; status: string }) => void): EventSubscription;
 };
 
 // Android only; null where the native module is missing (e.g. an old build).
@@ -28,8 +29,12 @@ export const recognizeText = (uri: string) => get().recognizeText(uri);
 /** Whether Gemini Nano can run on this phone, and whether it still has to be downloaded. */
 export const modelStatus = () => get().modelStatus();
 
-export function downloadModel(onProgress?: (bytes: number) => void): Promise<boolean> {
-  const sub = onProgress ? get().addListener("onDownloadProgress", (e) => onProgress(e.bytes)) : null;
+/** Raw AICore FeatureStatus number (diagnostics). */
+export const modelStatusRaw = () => get().modelStatusRaw();
+
+/** onProgress gets bytes (-1 for non-progress events) and AICore's status text. */
+export function downloadModel(onProgress?: (bytes: number, status: string) => void): Promise<boolean> {
+  const sub = onProgress ? get().addListener("onDownloadProgress", (e) => onProgress(e.bytes, e.status)) : null;
   return get()
     .downloadModel()
     .finally(() => sub?.remove());
