@@ -38,7 +38,7 @@ export function readingOrder(blocks: Block[]): Block[] {
 export function fixOcrLine(line: string): string {
   return line
     .replace(/ž/g, "ż")
-    .replace(/(^|[\s\d(])[tyblhł]?y[żź](?=eczk|k)/gi, "$1łyż")
+    .replace(/(^|[\s\d(])[tyblhił]?y[żź](?=eczk|k)/gi, "$1łyż")
     .replace(/(\d)(łyż)/g, "$1 $2")
     .replace(/(^|\s)(\d?)%(?=\s+\p{L})/gu, "$1$2½");
 }

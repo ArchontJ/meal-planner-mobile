@@ -53,7 +53,8 @@ const UNICODE_FRACTIONS: Record<string, number> = { "½": 0.5, "⅓": 1 / 3, "�
 export function num(s: string | undefined): number | null {
   if (!s) return null;
   // OCR and the model also write the fraction slash as "⁄" or "∕".
-  let v = s.trim().replace(",", ".").replace(/[⁄∕]/g, "/");
+  // A range ("500-600") counts as its first number.
+  let v = s.trim().replace(",", ".").replace(/[⁄∕]/g, "/").replace(/^(\d+(?:\.\d+)?)\s*[-–]\s*\d.*$/, "$1");
   const uni = /(\d*)\s*([½⅓⅔¼¾])/.exec(v);
   if (uni) return (uni[1] ? Number(uni[1]) : 0) + UNICODE_FRACTIONS[uni[2]!]!;
   const mixed = /^(\d+)\s+(\d+)\s*\/\s*(\d+)/.exec(v);
@@ -77,6 +78,18 @@ export function amountInLine(line: string): number | null {
   return m ? num(m[1]) : null;
 }
 
+/**
+ * The model's amount, corrected by the source line: when it gave none, or dropped the slash of a
+ * fraction written there ("1/3" → 13), the line's own amount wins. Otherwise the model's amount stays,
+ * since one line can hold several ingredients ("2 łyżeczki papryki, 1/2 łyżeczki oregano").
+ */
+export function pickAmount(model: number | null, line: string): number | null {
+  const fraction = fractionInLine(line);
+  if (model === null) return fraction ?? amountInLine(line);
+  const lostSlash = [...line.matchAll(/(\d+)\s*[/⁄∕]\s*(\d+)/g)].find((m) => `${m[1]}${m[2]}` === String(model));
+  return lostSlash ? Number(lostSlash[1]) / Number(lostSlash[2]) : model;
+}
+
 /** "(60 g)", "(5 9)" (OCR reads g as 9), "(1,5 kg)" in the source line: the cookbook's own weight. */
 export function gramsInLine(line: string): number | null {
   const m = /\((\d+(?:[.,]\d+)?)\s*(kg|dag|g|9)\s*\)/i.exec(line);
@@ -90,6 +103,13 @@ export function gramsInLine(line: string): number | null {
 const QTY_START =
   /^(\d|[½⅓⅔¼¾]|szczypt|garś|trochę|odrobin|kilka|kilkanaście|pęcz|plaster|plasterek|sok z|skórk|duż[aey] |mał[aey] |spor[aey] )/i;
 const HAS_QTY = /[\d½⅓⅔¼¾]/;
+// A kitchen measure in the line ("2 łyżki", "200 g", "1 szklanka").
+const HAS_MEASURE = /łyż|szklan|\d\s?(g|ml|kg|dag|l)\b/i;
+// Metadata printed between the ingredients ("Czas przygotowania: 30 minut", "Składniki /2 porcje/").
+const IS_META = /^(czas|liczba porcji|porcj|sk[łl]adniki|przygotowanie)/i;
+
+/** Ingredient lists with the amount first ("2 jajka") rather than after the name ("jajko - 1 sztuka"). */
+const isAmountFirst = (lines: string[]) => lines.filter((l) => QTY_START.test(l)).length >= lines.length / 2;
 
 /** Looks like one line of an ingredient list (short, starts with an amount, not a sentence). */
 export function looksLikeIngredient(line: string): boolean {
@@ -105,7 +125,7 @@ export function ingredientLineNumbers(lines: string[], fromModel: number[]): num
   // The model sometimes marks the whole page; sentences ("Ser wymieszaj ze śmietaną.") belong to the method.
   const isSentence = (l: string) =>
     /[.!?]$/.test(l) ||
-    (l.length > 55 && !looksLikeIngredient(l)) ||
+    (l.length > 55 && !looksLikeIngredient(l) && !HAS_MEASURE.test(l) && !/^przypraw/i.test(l)) ||
     (l.length > 40 && /\p{L}-$/u.test(l)) || // hyphenated method text ("wymieszaj mik-")
     (l.match(/,/g)?.length ?? 0) >= 3;
   const set = new Set(fromModel.filter((n) => !isSentence(lines[n - 1] ?? "")));
@@ -134,7 +154,12 @@ export function ingredientLineNumbers(lines: string[], fromModel: number[]): num
   // Section headers ("Sos") only bridged the gap; they are not ingredients.
   // Capitals-only lines ("NADZIENIE:", "SOS") are section titles too.
   const isTitle = (l: string) => /^[\p{Lu}\s]+:?$/u.test(l);
-  return [...set].filter((n) => !headers.has(n) && !isTitle(lines[n - 1]!)).sort((a, b) => a - b);
+  const kept = [...set].filter((n) => !headers.has(n) && !isTitle(lines[n - 1]!) && !isDietLabel(lines[n - 1]!) && !IS_META.test(lines[n - 1]!));
+  // In name-first lists ("kalafior - 1/2 sztuki") a capitalised line with no amount and no " - " is a
+  // sub-heading ("Pieczony kalafior", "Dodatkowo"), not a product.
+  if (isAmountFirst(kept.map((n) => lines[n - 1]!))) return kept.sort((a, b) => a - b);
+  const isSubheading = (l: string) => /^\p{Lu}/u.test(l) && !HAS_QTY.test(l) && !/\s[-–]/.test(l) && !/przypraw|do smaku/i.test(l);
+  return kept.filter((n) => !isSubheading(lines[n - 1]!)).sort((a, b) => a - b);
 }
 
 /**
@@ -145,7 +170,7 @@ export function ingredientLineNumbers(lines: string[], fromModel: number[]): num
 export function joinWrappedLines(lines: string[], newBlock?: boolean[]): string[] {
   // Amount-first lists ("2 jajka") start each ingredient with an amount; name-first lists
   // ("jajko - 1 sztuka") put it after the name, so there a line starting with a number continues.
-  const amountFirst = lines.filter((l) => QTY_START.test(l)).length >= lines.length / 2;
+  const amountFirst = isAmountFirst(lines);
   const out: string[] = [];
   lines.forEach((line, i) => {
     const prev = out.at(-1);
@@ -155,9 +180,12 @@ export function joinWrappedLines(lines: string[], newBlock?: boolean[]): string[
       (/[-–,(]$/.test(prev) ||
         /\s(bez|z|ze|do|na|w|i|lub|oraz|od|dla)$/i.test(prev) ||
         /^(i|lub|oraz|albo)\s/i.test(line) ||
+        /^\(/.test(line) || // "(90 g przed ugotowaniem)"
         (amountFirst
           ? sameBlock && !QTY_START.test(line) && /^\p{Ll}/u.test(line)
-          : /^[\d½⅓¼¾(]/.test(line) && !HAS_QTY.test(prev)));
+          : (/^[\d½⅓¼¾(]/.test(line) && !HAS_QTY.test(prev)) ||
+            // "przyprawy: 2 łyżeczki papryki, …" wrapped inside its block: no " - " of its own.
+            (sameBlock && /^\p{Ll}/u.test(line) && !/\s[-–]\s?/.test(line) && !/\)$/.test(prev))));
     if (continues) out[out.length - 1] = `${prev} ${line}`;
     else out.push(line);
   });
@@ -188,6 +216,15 @@ function sourceLine(name: string, batch: string[], fallback: number): string {
   });
   return batch[best >= 0 ? best : Math.min(fallback, batch.length - 1)] ?? name;
 }
+/** Cyrillic look-alikes the model sometimes writes ("сок") → Latin letters. */
+const latin = (s: string) => s.replace(/[аеорсхуАЕОРСХ]/g, (c) => "aeopcxyAEOPCX"["аеорсхуАЕОРСХ".indexOf(c)]!);
+
+/** Diet labels printed next to the list on dietitian recipe cards ("bez glutenu", "niski IG"). */
+export const isDietLabel = (l: string) =>
+  /^(bez \p{L}+|wegańsk\p{L}*|wegetariańsk\p{L}*|białkowo-?\s?tłuszczow\p{L}*|bogat\p{L}* w \p{L}+|niski ig|na zimno|na ciepło|wysokobiałkow\p{L}*|lekkostrawn\p{L}*)$/iu.test(
+    l.trim(),
+  );
+
 const clean = (s: string | undefined) => {
   const v = (s ?? "").trim();
   return !v || /^(brak|null|-|—|nie)$/i.test(v) ? null : v;
@@ -211,7 +248,7 @@ ${numbered}`;
 function ingredientsPrompt(lines: string[]): string {
   return `Zamień każdą linię składnika na jedną linię w formacie:
 nazwa | ilość | jednostka | gramy
-- nazwa: sam produkt po polsku w mianowniku, bez opisu przygotowania (np. "cebula", nie "cebula posiekana"); popraw błędy odczytu (np. "tagodna" → "łagodna")
+- nazwa: produkt z tej linii po polsku w mianowniku, bez słów o przygotowaniu (posiekany, pokrojony); popraw błędy odczytu liter
 - ilość: liczba albo -
 - jednostka: g, kg, dag, ml, l, łyżka, łyżeczka, szklanka, szt., szczypta, opakowanie albo -
 - gramy: szacunkowa waga w gramach albo -
@@ -313,16 +350,21 @@ export async function readRecipe(
     const rows = out
       .split("\n")
       .map((l) => l.replace(/^[-*•\d.)\s]+/, "").trim())
+      // Sometimes the model separates the fields with " - " instead of "|".
+      .map((l) => (l.includes("|") ? l : l.split(/\s+[-–]\s+/).join(" | ")))
       .filter((l) => l.includes("|"));
     rows.forEach((row, i) => {
-      const [name, amount, unit, grams] = row.split("|").map((p) => p.trim());
-      if (!clean(name)) return;
-      const original = sourceLine(name!, batch, i);
+      const [rawName, amount, rawUnit, grams] = row.split("|").map((p) => p.trim());
+      const name = clean(latin(rawName ?? ""));
+      // "nazwa" is the format's own header word, never a product.
+      if (!name || /^nazwa$/i.test(name) || isDietLabel(name)) return;
+      const original = sourceLine(name, batch, i);
+      // "szczypta" or "garść" given as the amount is the unit of one.
+      const wordAmount = amount && /^\p{L}+$/u.test(amount) ? amount : null;
       ingredients.push({
-        name: clean(name)!,
-        // The model sometimes drops the slash ("1/3" → "13"); a fraction in the line wins.
-        amount: fractionInLine(original) ?? num(amount) ?? amountInLine(original),
-        unit: clean(unit),
+        name,
+        amount: pickAmount(num(amount), original) ?? (wordAmount ? 1 : null),
+        unit: clean(rawUnit) ?? wordAmount,
         grams: gramsInLine(original) ?? num(grams),
         original,
         note: null,
