@@ -102,7 +102,13 @@ export function looksLikeIngredient(line: string): boolean {
  * continuations, and short section headers between them.
  */
 export function ingredientLineNumbers(lines: string[], fromModel: number[]): number[] {
-  const set = new Set(fromModel);
+  // The model sometimes marks the whole page; sentences ("Ser wymieszaj ze śmietaną.") belong to the method.
+  const isSentence = (l: string) =>
+    /[.!?]$/.test(l) ||
+    (l.length > 55 && !looksLikeIngredient(l)) ||
+    (l.length > 40 && /\p{L}-$/u.test(l)) || // hyphenated method text ("wymieszaj mik-")
+    (l.match(/,/g)?.length ?? 0) >= 3;
+  const set = new Set(fromModel.filter((n) => !isSentence(lines[n - 1] ?? "")));
   const headers = new Set<number>();
   const isHeader = (l: string) => l.length <= 30 && !HAS_QTY.test(l) && !/[.,]$/.test(l);
   const isContinuation = (l: string) => l.length <= 45 && /^\p{Ll}/u.test(l) && !QTY_START.test(l);
@@ -116,7 +122,8 @@ export function ingredientLineNumbers(lines: string[], fromModel: number[]): num
       const nextIn = set.has(n + 1);
       const next = lines[n] ?? "";
       const header = prevIn && isHeader(line) && !looksLikeIngredient(line) && !isContinuation(line) && looksLikeIngredient(next);
-      const add = ((prevIn || nextIn) && looksLikeIngredient(line)) || (prevIn && isContinuation(line)) || header;
+      const add =
+        !isSentence(line) && (((prevIn || nextIn) && looksLikeIngredient(line)) || (prevIn && isContinuation(line)) || header);
       if (add) {
         set.add(n);
         if (header) headers.add(n);
@@ -125,27 +132,35 @@ export function ingredientLineNumbers(lines: string[], fromModel: number[]): num
     }
   }
   // Section headers ("Sos") only bridged the gap; they are not ingredients.
-  return [...set].filter((n) => !headers.has(n)).sort((a, b) => a - b);
+  // Capitals-only lines ("NADZIENIE:", "SOS") are section titles too.
+  const isTitle = (l: string) => /^[\p{Lu}\s]+:?$/u.test(l);
+  return [...set].filter((n) => !headers.has(n) && !isTitle(lines[n - 1]!)).sort((a, b) => a - b);
 }
 
-/** OCR splits long ingredient lines; join a line onto the previous one when it clearly continues it. */
-export function joinWrappedLines(lines: string[]): string[] {
+/**
+ * OCR splits long ingredient lines; join a line onto the previous one when it clearly continues it.
+ * newBlock[i] says line i starts a new OCR block: each ingredient is usually a block of its own, so
+ * across blocks only a dangling "-", "," or preposition ("bez" + "pestek") joins.
+ */
+export function joinWrappedLines(lines: string[], newBlock?: boolean[]): string[] {
   // Amount-first lists ("2 jajka") start each ingredient with an amount; name-first lists
   // ("jajko - 1 sztuka") put it after the name, so there a line starting with a number continues.
   const amountFirst = lines.filter((l) => QTY_START.test(l)).length >= lines.length / 2;
   const out: string[] = [];
-  for (const line of lines) {
+  lines.forEach((line, i) => {
     const prev = out.at(-1);
+    const sameBlock = !newBlock?.[i];
     const continues =
       prev !== undefined &&
       (/[-–,(]$/.test(prev) ||
+        /\s(bez|z|ze|do|na|w|i|lub|oraz|od|dla)$/i.test(prev) ||
         /^(i|lub|oraz|albo)\s/i.test(line) ||
         (amountFirst
-          ? !QTY_START.test(line) && /^\p{Ll}/u.test(line)
+          ? sameBlock && !QTY_START.test(line) && /^\p{Ll}/u.test(line)
           : /^[\d½⅓¼¾(]/.test(line) && !HAS_QTY.test(prev)));
     if (continues) out[out.length - 1] = `${prev} ${line}`;
     else out.push(line);
-  }
+  });
   return out;
 }
 
@@ -233,6 +248,24 @@ function stepChunks(lines: string[]): string[] {
   return chunks;
 }
 
+/** Non-empty lines of the OCR text; newBlock[i] is true when line i starts a new block (after an empty line). */
+export function splitLines(ocrText: string): { lines: string[]; newBlock: boolean[] } {
+  const lines: string[] = [];
+  const newBlock: boolean[] = [];
+  let blank = true;
+  for (const raw of ocrText.split("\n")) {
+    const l = raw.trim();
+    if (!l) {
+      blank = true;
+      continue;
+    }
+    lines.push(l);
+    newBlock.push(blank);
+    blank = false;
+  }
+  return { lines, newBlock };
+}
+
 const capitalize = (t: string) => t.charAt(0).toLocaleUpperCase("pl") + t.slice(1);
 
 export async function readRecipe(
@@ -248,17 +281,17 @@ export async function readRecipe(
     return output;
   };
 
-  const lines = ocrText
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean);
+  const { lines, newBlock } = splitLines(ocrText);
   const numbered = lines.map((l, i) => `${i + 1}: ${l}`).join("\n");
 
   // 1. Overview: metadata and where the ingredients and the method are.
   onProgress?.(0, 1);
   const overview = await run("overview", overviewPrompt(numbered));
   const ingredientNumbers = ingredientLineNumbers(lines, parseRanges(field(overview, "SKŁADNIKI") ?? "", lines.length));
-  const ingredientLines = joinWrappedLines(ingredientNumbers.map((n) => lines[n - 1]!));
+  const ingredientLines = joinWrappedLines(
+    ingredientNumbers.map((n) => lines[n - 1]!),
+    ingredientNumbers.map((n) => newBlock[n - 1]!),
+  );
   // Method ranges often overlap the list; ingredient lines never become steps.
   let stepNumbers = parseRanges(field(overview, "KROKI") ?? "", lines.length).filter((n) => !ingredientNumbers.includes(n));
   // Lines above the ingredient list are the title, time and intro – unless the method really is there.

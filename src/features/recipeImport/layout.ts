@@ -3,32 +3,35 @@
 
 export type Block = { text: string; left: number; top: number; right: number; bottom: number };
 
-/** Groups blocks separated by an empty strip along one axis ("x": columns, "y": rows). */
-function split(blocks: Block[], axis: "x" | "y"): Block[][] {
+type Cut = { gap: number; before: Block[]; after: Block[] };
+
+/** The widest empty strip along one axis ("x": between columns, "y": between rows), if any. */
+function widestCut(blocks: Block[], axis: "x" | "y"): Cut | null {
   const start = (b: Block) => (axis === "x" ? b.left : b.top);
   const end = (b: Block) => (axis === "x" ? b.right : b.bottom);
   const sorted = [...blocks].sort((a, b) => start(a) - start(b));
-  const groups: Block[][] = [];
-  let maxEnd = -Infinity;
-  for (const b of sorted) {
-    if (start(b) >= maxEnd) groups.push([b]);
-    else groups.at(-1)!.push(b);
-    maxEnd = Math.max(maxEnd, end(b));
+  let best: Cut | null = null;
+  let maxEnd = end(sorted[0]!);
+  for (let i = 1; i < sorted.length; i++) {
+    const gap = start(sorted[i]!) - maxEnd;
+    if (gap >= 0 && (!best || gap > best.gap)) best = { gap, before: sorted.slice(0, i), after: sorted.slice(i) };
+    maxEnd = Math.max(maxEnd, end(sorted[i]!));
   }
-  return groups;
+  return best;
 }
 
 /**
- * Reading order by recursive XY-cut: columns left to right first, then rows top to bottom.
- * A full-width title or intro cannot be cut into columns, so it splits the page into rows instead.
+ * Reading order by recursive XY-cut: always cut along the widest empty strip, so a page splits
+ * into title and body first (big gap below the title), then the body into columns (the gap between
+ * columns is wider than the gaps between lines that happen to line up across them).
  */
 export function readingOrder(blocks: Block[]): Block[] {
   if (blocks.length <= 1) return blocks;
-  const columns = split(blocks, "x");
-  if (columns.length > 1) return columns.flatMap(readingOrder);
-  const rows = split(blocks, "y");
-  if (rows.length > 1) return rows.flatMap(readingOrder);
-  return [...blocks].sort((a, b) => a.top - b.top || a.left - b.left);
+  const x = widestCut(blocks, "x");
+  const y = widestCut(blocks, "y");
+  const cut = x && (!y || x.gap >= y.gap) ? x : y;
+  if (!cut) return [...blocks].sort((a, b) => a.top - b.top || a.left - b.left);
+  return [...readingOrder(cut.before), ...readingOrder(cut.after)];
 }
 
 /** Common OCR misreads: "tyżeczka"/"yżeczka"/"lyżka" → łyżeczka/łyżka, "%" for "½", "1tyżeczka" → "1 łyżeczka". */
