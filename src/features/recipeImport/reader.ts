@@ -86,8 +86,53 @@ export function gramsInLine(line: string): number | null {
   return unit === "kg" ? n * 1000 : unit === "dag" ? n * 10 : n;
 }
 
+// A line that starts a new ingredient in amount-first lists ("2 jajka", "szczypta soli", "duża garść mięty").
+const QTY_START =
+  /^(\d|[½⅓⅔¼¾]|szczypt|garś|trochę|odrobin|kilka|kilkanaście|pęcz|plaster|plasterek|sok z|skórk|duż[aey] |mał[aey] |spor[aey] )/i;
+const HAS_QTY = /[\d½⅓⅔¼¾]/;
+
+/** Looks like one line of an ingredient list (short, starts with an amount, not a sentence). */
+export function looksLikeIngredient(line: string): boolean {
+  return line.length <= 70 && !/[.!?:]$/.test(line) && QTY_START.test(line) && !/minut|porcj|godzin/i.test(line);
+}
+
+/**
+ * Line numbers (1-based) of the ingredient list: the model's ranges, grown over neighbouring lines that
+ * look like ingredients (the model often stops early or skips a "Sos" section), their wrapped
+ * continuations, and short section headers between them.
+ */
+export function ingredientLineNumbers(lines: string[], fromModel: number[]): number[] {
+  const set = new Set(fromModel);
+  const headers = new Set<number>();
+  const isHeader = (l: string) => l.length <= 30 && !HAS_QTY.test(l) && !/[.,]$/.test(l);
+  const isContinuation = (l: string) => l.length <= 45 && /^\p{Ll}/u.test(l) && !QTY_START.test(l);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (let n = 1; n <= lines.length; n++) {
+      if (set.has(n)) continue;
+      const line = lines[n - 1]!;
+      const prevIn = set.has(n - 1);
+      const nextIn = set.has(n + 1);
+      const next = lines[n] ?? "";
+      const header = prevIn && isHeader(line) && !looksLikeIngredient(line) && !isContinuation(line) && looksLikeIngredient(next);
+      const add = ((prevIn || nextIn) && looksLikeIngredient(line)) || (prevIn && isContinuation(line)) || header;
+      if (add) {
+        set.add(n);
+        if (header) headers.add(n);
+        grew = true;
+      }
+    }
+  }
+  // Section headers ("Sos") only bridged the gap; they are not ingredients.
+  return [...set].filter((n) => !headers.has(n)).sort((a, b) => a - b);
+}
+
 /** OCR splits long ingredient lines; join a line onto the previous one when it clearly continues it. */
 export function joinWrappedLines(lines: string[]): string[] {
+  // Amount-first lists ("2 jajka") start each ingredient with an amount; name-first lists
+  // ("jajko - 1 sztuka") put it after the name, so there a line starting with a number continues.
+  const amountFirst = lines.filter((l) => QTY_START.test(l)).length >= lines.length / 2;
   const out: string[] = [];
   for (const line of lines) {
     const prev = out.at(-1);
@@ -95,8 +140,9 @@ export function joinWrappedLines(lines: string[]): string[] {
       prev !== undefined &&
       (/[-–,(]$/.test(prev) ||
         /^(i|lub|oraz|albo)\s/i.test(line) ||
-        // "szalotka posiekana" + "1 łyżeczka (5 g)"; but not lists written amount-first ("2 jajka", "200 g mąki").
-        (/^[\d½⅓¼¾(]/.test(line) && !/\d/.test(prev)));
+        (amountFirst
+          ? !QTY_START.test(line) && /^\p{Ll}/u.test(line)
+          : /^[\d½⅓¼¾(]/.test(line) && !HAS_QTY.test(prev)));
     if (continues) out[out.length - 1] = `${prev} ${line}`;
     else out.push(line);
   }
@@ -141,7 +187,7 @@ PORCJE: liczba porcji (oszacuj, jeśli jej brak)
 POSIŁKI: pasujące z breakfast, second_breakfast, lunch, dessert, supper (po przecinku) albo brak
 TAGI: 0–3 krótkie tagi małymi literami albo brak
 SKŁADNIKI: numery linii ze składnikami, np. 4-15
-KROKI: numery linii z opisem przygotowania (bez wstępu i anegdot), np. 17-30
+KROKI: numery linii z opisem przygotowania, od pierwszego polecenia (np. "Wymieszaj", "Pokrój") – bez wstępu, czasu przygotowania i anegdot, np. 17-30
 
 Tekst:
 ${numbered}`;
@@ -211,10 +257,14 @@ export async function readRecipe(
   // 1. Overview: metadata and where the ingredients and the method are.
   onProgress?.(0, 1);
   const overview = await run("overview", overviewPrompt(numbered));
-  const ingredientLines = joinWrappedLines(
-    parseRanges(field(overview, "SKŁADNIKI") ?? "", lines.length).map((n) => lines[n - 1]!),
-  );
-  const stepLines = parseRanges(field(overview, "KROKI") ?? "", lines.length).map((n) => lines[n - 1]!);
+  const ingredientNumbers = ingredientLineNumbers(lines, parseRanges(field(overview, "SKŁADNIKI") ?? "", lines.length));
+  const ingredientLines = joinWrappedLines(ingredientNumbers.map((n) => lines[n - 1]!));
+  // Method ranges often overlap the list; ingredient lines never become steps.
+  let stepNumbers = parseRanges(field(overview, "KROKI") ?? "", lines.length).filter((n) => !ingredientNumbers.includes(n));
+  // Lines above the ingredient list are the title, time and intro – unless the method really is there.
+  const afterList = stepNumbers.filter((n) => n > (ingredientNumbers[0] ?? 0));
+  if (afterList.length >= 5) stepNumbers = afterList;
+  const stepLines = stepNumbers.map((n) => lines[n - 1]!);
 
   const ingredientBatches: string[][] = [];
   for (let i = 0; i < ingredientLines.length; i += INGREDIENT_BATCH) ingredientBatches.push(ingredientLines.slice(i, i + INGREDIENT_BATCH));

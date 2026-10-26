@@ -34,7 +34,8 @@ export function readingOrder(blocks: Block[]): Block[] {
 /** Common OCR misreads: "tyżeczka"/"yżeczka"/"lyżka" → łyżeczka/łyżka, "%" for "½", "1tyżeczka" → "1 łyżeczka". */
 export function fixOcrLine(line: string): string {
   return line
-    .replace(/(^|[\s\d(])[tyblhł]?y[żž](?=eczk|k)/gi, "$1łyż")
+    .replace(/ž/g, "ż")
+    .replace(/(^|[\s\d(])[tyblhł]?y[żź](?=eczk|k)/gi, "$1łyż")
     .replace(/(\d)(łyż)/g, "$1 $2")
     .replace(/(^|\s)(\d?)%(?=\s+\p{L})/gu, "$1$2½");
 }
